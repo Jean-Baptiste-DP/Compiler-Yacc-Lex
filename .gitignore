@@ -1,0 +1,5 @@
+calc
+*.tab.*
+lex.yy.c
+
+notes.md
