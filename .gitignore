@@ -1,5 +1,5 @@
 calc
 *.tab.*
 lex.yy.c
-
+a.out
 notes.md

@@ -560,7 +560,7 @@ CalcStorage newCalcStorage(){
     return initStor;
 }
 
-void storeCalcul(CalcStorage storage, Calcul calc){
+int storeCalcul(CalcStorage storage, Calcul calc){
     if(storage->lastElement == storage->length){
         int size = 2* storage->length;
         Calcul *line = storage->line;
@@ -576,6 +576,7 @@ void storeCalcul(CalcStorage storage, Calcul calc){
         storage->line[storage->lastElement] = calc;
         storage->lastElement=storage->lastElement+1;
     }
+    return storage->lastElement-1;
 }
 
 Calcul getCalc(CalcStorage storage, int index){
@@ -606,14 +607,12 @@ int main(){
     Calcul myCalcul3 = OpeCalc(0, ConstCalc(3), FctCalc("fct1", addParameter(0,NULL)));/* fct1(calc[0], calc[1]) */
     storeCalcul(calculs, myCalcul3); /* calc[2] = 4 * fct1 */
     Calcul myCalcul4 = OpeCalc(0, ConstCalc(3), FctCalc("fct2", addParameter(1,NULL)));/* fct1(calc[0], calc[1]) */
-    storeCalcul(calculs, myCalcul4); /* calc[3] = fct2 */
+    printf("should be 3 : %d\n",storeCalcul(calculs, myCalcul4)); /* calc[3] = fct2 */
     Calcul myCalcul5 = OpeCalc(2, FctCalc("fct3", addParameter(2, NULL)), FctCalc("fct4", addParameter(3, NULL)));
     storeCalcul(calculs, myCalcul5);
 
     char *response;
     int i = 0;
-
-    printf("Fist calcul \n\n");
 
     response = getCalcCallBack(getCalc(calculs,4),myData, calculs);
     while(strcmp(response, "")!=0){

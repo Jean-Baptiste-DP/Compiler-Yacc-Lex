@@ -144,6 +144,6 @@ Calcul OpeCalc(int operat, Calcul left, Calcul right);
 /* --- All calculs --- */
 
 CalcStorage newCalcStorage();
-void storeCalcul(CalcStorage storage, Calcul calc);
+int storeCalcul(CalcStorage storage, Calcul calc);
 Calcul getCalc(CalcStorage storage, int index);
 void freeCalcStorage(CalcStorage storage);
