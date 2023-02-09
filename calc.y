@@ -8,6 +8,25 @@
 int flag=0;
 void yyerror();
 int yylex();
+
+/* Data variables = newData(); */
+struct AllVariables allVar = {.var = NULL, .next = NULL};
+struct data dat = {.myData = &allVar};
+Data variables = &dat;
+
+/* Stack myStack = newStack(); */
+struct stack stack = {.stack = NULL};
+Stack myStack = &stack;
+
+/* Program myPrgm = newPrgm(); */
+Action listePrgm[4];
+struct prgmLine prgm = {.length = 4, .lastElement = 0, .line = listePrgm};
+Program myPrgm = &prgm;
+
+/* CalcStorage myCalc = newCalcStorage(); */
+Calcul listeCalc[4];
+struct calcLine calc = {.length = 4, .lastElement = 0, .line = listeCalc};
+CalcStorage myCalc = &calc;
 %}
 
 
@@ -87,9 +106,5 @@ void yyerror()
 }
 
 int main(){
-    Data variables = newData();
-    Stack myStack = newStack();
-    Program myPrgm = newPrgm();
-    CalcStorage myCalc = newCalcStorage();
     yyparse();
 }
