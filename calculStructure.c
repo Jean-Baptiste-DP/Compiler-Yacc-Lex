@@ -146,6 +146,38 @@ void freeData(Data variables){
     free(variables);
 }
 
+DataStack freeContextStack(DataStack variables){
+    if(!isEmptyStack(variables) && strcmp(variables->var->type, "context")!=0){
+        free(variables->var->name);
+        free(variables->var->type);
+        free(variables->var);
+        DataStack next = variables->next;
+        free(variables);
+        freeContextStack(next);
+    }else{
+        return variables;
+    }
+}
+
+DataStack freeOneInStack(DataStack variables){
+    if(!isEmptyStack(variables)){
+        free(variables->var->name);
+        free(variables->var->type);
+        free(variables->var);
+        DataStack next = variables->next;
+        free(variables);
+        return next;
+    }
+    return variables;
+}
+
+int freeContext(Data variables){
+    variables->myData = freeContextStack(variables->myData);
+    int returnPosition = variables->myData->var->value;
+    variables->myData = freeOneInStack(variables->myData);
+    return returnPosition;
+}
+
 /* --- Calcul symbole --- */
 
 Symbole newSymbole(int type, int val, char *var){
@@ -404,7 +436,6 @@ void freeFctRegistered(FctRegister fct){
 
 char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc){
     if(isVarExist(myData, "return") && (!fct->parameters || fct->parameters->executed)){
-        printf("%s get return value %d\n", fct->name ,getVar(myData, "return")->value);
         fct->value = getVar(myData, "return")->value;
         deleteVar(myData, "return");
         fct->executed = true;
@@ -415,13 +446,10 @@ char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc){
     }
 
     if(!fct->parameters){
-        printf("No parameters in function\n");
         return fct->name;
     }else{
         char *response;
-        printf("CallBack in parameter of function %s\n", fct->name);
         response = getCallBack(fct->parameters, myData, myCalc);
-        printf("Response received %s\n", response);
         if(strcmp(response,"")!=0){
             return response;
         }
@@ -594,6 +622,151 @@ void freeCalcStorage(CalcStorage storage){
     }
     free(storage->line);
     free(storage);
+}
+
+/* --- Actions --- */
+
+Action newAction(int type,char *var,int line,int calc){
+    Action act = malloc(sizeof(Action));
+    char *myVar = malloc(strlen(var)*sizeof(char));
+    strcpy(myVar, var);
+    act->varName = myVar;
+    act->type = type;
+    act->line = line;
+    act->calc = calc;
+    return act;
+}
+
+void freeAction(Action act){
+    free(act->varName);
+    free(act);
+}
+
+/* -- Program Actions --- */
+
+Program newPrgm(){
+    int size = 4;
+    Program initPgrm = malloc(sizeof(Program)); 
+    initPgrm->length = size;
+    initPgrm->lastElement = 0;
+    initPgrm->line = malloc(size*sizeof(Action));
+    return initPgrm;
+}
+
+/* Store action in program */
+
+void storeAction(Program myPrgm, Action action){
+    if(myPrgm->lastElement == myPrgm->length){
+        int size = 2* myPrgm->length;
+        Action *line = myPrgm->line;
+        myPrgm->line = malloc(size*sizeof(Action));
+        for(int i = 0; i<myPrgm->length; i=i+1){
+            myPrgm->line[i] = line[i];
+        }
+        free(line);
+        myPrgm->length = size;
+        myPrgm->line[myPrgm->lastElement] = action;
+        myPrgm->lastElement=myPrgm->lastElement+1;
+    }else{
+        myPrgm->line[myPrgm->lastElement] = action;
+        myPrgm->lastElement=myPrgm->lastElement+1;
+    }
+}
+
+/* give the given action */
+
+Action getAction(Program myPrgm, int index){
+    if(index<myPrgm->lastElement){
+        return myPrgm->line[index];
+    }else{
+        printf("Index out of bound\n");
+        return 0;
+    }
+}
+
+void freeProgram(Program myPgrm){
+    for(int i=0; i<myPgrm->lastElement; i=i+1){
+        freeAction(myPgrm->line[i]);
+    }
+    free(myPgrm->line);
+    free(myPgrm);
+}
+
+void runProgram(Program myPrgm, CalcStorage calculs, Data variables){
+    int i = 0;
+    Action currentAction = getAction(myPrgm, i);
+    while(currentAction->type!=5 && i<myPrgm->lastElement){
+        if(currentAction->type==0){ /* assigment */
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs); 
+            if(strcmp(response, "")==0){
+                if(isVarExist(variables, currentAction->varName)){
+                    getVar(variables, currentAction->varName)->value = runCalcul(getCalc(calculs, currentAction->calc), variables);
+                }else{
+                    storeVar(variables, newVar(currentAction->varName, "int", runCalcul(getCalc(calculs, currentAction->calc), variables)));
+                }
+                i = i+1;
+            }else{
+                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
+                    storeVar(variables, newVar("", "context", i));
+                    i = getVar(variables, response)->value;
+                }else{
+                    printf("The function %s doesn't exist\n", response);
+                    i = i+1;
+                }
+            }
+
+        }else if(currentAction->type==1){/* print calcul */
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs);
+            if(strcmp(response, "")==0){
+                printf("%d\n", runCalcul(getCalc(calculs, currentAction->calc), variables));
+                i = i+1;
+            }else{
+                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
+                    storeVar(variables, newVar("", "context", i));
+                    i = getVar(variables, response)->value;
+                }else{
+                    printf("The function %s doesn't exist\n", response);
+                    i = i+1;
+                }
+            }
+        }else if(currentAction->type==2){
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs);
+            if(strcmp(response, "")==0){
+                if(runCalcul(getCalc(calculs, currentAction->calc), variables)){
+                    i = i+2;
+                }else{
+                    i = i+1;
+                }
+            }else{
+                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
+                    storeVar(variables, newVar("", "context", i));
+                    i = getVar(variables, response)->value;
+                }else{
+                    printf("The function %s doesn't exist\n", response);
+                    i = i+1;
+                }
+            }
+        }else if(currentAction->type==3){/* goto line */
+            i = currentAction->line;
+        }else if(i==4){ /* exit fct */
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs);
+            if(strcmp(response, "")==0){
+                i = freeContext(variables);
+                storeVar(variables, newVar("return", "return", runCalcul(getCalc(calculs, currentAction->calc), variables)));
+            }else{
+                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
+                    storeVar(variables, newVar("", "context", i));
+                    i = getVar(variables, response)->value;
+                }else{
+                    printf("The function %s doesn't exist\n", response);
+                    i = i+1;
+                }
+            }
+        }else{
+            i = i+1;
+        }
+        currentAction = getAction(myPrgm, i);
+    }
 }
 
 int main(){

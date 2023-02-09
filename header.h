@@ -68,6 +68,19 @@ typedef struct calcLine{
     Calcul *line;
 }*CalcStorage;
 
+typedef struct action{
+    int type;
+    char *varName;
+    int line;
+    int calc;
+}*Action;
+
+typedef struct prgmLine{
+    int length;
+    int lastElement;
+    Action *line;
+}*Program;
+
 /* --- Variable --- */
 
 Variable newVar(char *name, char *type, int value);
@@ -82,6 +95,8 @@ Variable getVarStack(DataStack variables, char *name);
 DataStack deleteVarStack(DataStack variables, char *name);
 DataStack storeVarStack(DataStack variables, Variable var);
 void freeDataStack(DataStack variables);
+DataStack freeContextStack(DataStack variables);
+DataStack freeOneInStack(DataStack variables);
 
 /* --- Data Storage --- */
 
@@ -92,6 +107,7 @@ Variable getVar(Data variables, char *name);
 void deleteVar(Data variables, char *name);
 void storeVar(Data variables, Variable var);
 void freeData(Data variables);
+int freeContext(Data variables);
 
 /* --- Calcul Symbole --- */
 
@@ -147,3 +163,15 @@ CalcStorage newCalcStorage();
 int storeCalcul(CalcStorage storage, Calcul calc);
 Calcul getCalc(CalcStorage storage, int index);
 void freeCalcStorage(CalcStorage storage);
+
+/* --- Action of program --- */
+
+Action newAction(int type,char *var,int line,int calc);
+void freeAction(Action act);
+
+/* --- Program Line --- */
+
+Program newPrgm();
+void storeAction(Program myPrgm, Action act);
+Action getAction(Program myPrgm, int index);
+void freeProgram(Program myPgrm);
