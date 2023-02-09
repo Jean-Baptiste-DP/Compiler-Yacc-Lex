@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include "prgmStructure.h"
 int flag=0;
 void yyerror();
 int yylex();
@@ -71,17 +72,24 @@ Condition : NOT Condition               {$$= !$2;}
 | Expression LEQ Expression             {$$ = $1 <= $3;}
 | Expression GNEQ Expression            {$$ = $1 > $3;}
 | Expression LNEQ Expression            {$$ = $1 < $3;}
+;
 
-/* ifFunction : IF Condition action ELSE action    {if($2){printf("Condition passée \n");}else{printf("Posibilité par défaut \n");};}
-| IF Condition action                           {if($2){printf("Condition passée \n");};} */
 
 ifFunction : IF Condition action ELSE action    {if($2){;}else{;};}
 | IF Condition action                           {if($2){;};}
-
+;
 %%
 
 void yyerror()
 {
     printf("\nEntered arithmetic expression is Invalid\n\n");
     flag=1;
+}
+
+int main(){
+    Data variables = newData();
+    Stack myStack = newStack();
+    Program myPrgm = newPrgm();
+    CalcStorage myCalc = newCalcStorage();
+    yyparse();
 }

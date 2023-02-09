@@ -18,7 +18,7 @@ produit le fichier :
 
 *lex.yy.c* qui contient le code en c de l’analyseur lexical.
 
-**gcc -o calc calc.c calc.tab.c lex.yy.c**
+**gcc -o calc calc.tab.c lex.yy.c**
 
 produit l’executable :
 

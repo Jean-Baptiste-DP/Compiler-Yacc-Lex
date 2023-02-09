@@ -5,6 +5,10 @@ typedef struct intStack{
     struct intStack *next;
 }*IntStack;
 
+typedef struct stack{
+    IntStack stack;
+}*Stack;
+
 typedef struct calcSym{
     int value;
     int type;
@@ -98,6 +102,17 @@ void freeDataStack(DataStack variables);
 DataStack freeContextStack(DataStack variables);
 DataStack freeOneInStack(DataStack variables);
 
+/* --- Stack --- */
+
+Stack newStack();
+bool StackisEmpty(Stack stack);
+void freeIntStack(IntStack stack);
+void freeStack(Stack stack);
+void changeStack(Stack stack, IntStack intStack);
+void removeStack(Stack stack);
+void appendInt(Stack stack, int value);
+int removeLastValue(Stack stack);
+
 /* --- Data Storage --- */
 
 Data newData();
@@ -129,7 +144,7 @@ void incrementFctIndex(CalculNb tree, int num);
 
 FctParameters addParameter(int calc, FctParameters nextPara);
 void freeParameter(FctParameters parameter);
-char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs);
+char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, Stack myStack);
 IntStack getParametersValues(FctParameters parameter);
 void parameterExecutionFalse(FctParameters parameter);
 
@@ -137,20 +152,20 @@ void parameterExecutionFalse(FctParameters parameter);
 
 FctRegister initFct(char *name, FctParameters parameters);
 void freeFctRegistered(FctRegister fct);
-char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc);
+char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Stack myStack);
 
 /* -- Storage of calculs functions --- */
 
 AllCalcFct noFctinCalc();
 void storeFctCalc(AllCalcFct allFct, FctRegister fct);
-char *getCallBackInAll(AllCalcFct allFct, Data myData, CalcStorage myCalc);
+char *getCallBackInAll(AllCalcFct allFct, Data myData, CalcStorage myCalc, Stack myStack);
 void freeAllCalcFct(AllCalcFct allFct);
 
 /* --- One calcul --- */
 
 Calcul newCalc(CalculNb nb, AllCalcFct fct);
 void freeCalcul(Calcul calc);
-char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage);
+char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage, Stack myStack);
 int runCalcul(Calcul myCalc, Data myData);
 Calcul ConstCalc(int constante);
 Calcul VarCalc(char *name);
@@ -175,3 +190,8 @@ Program newPrgm();
 void storeAction(Program myPrgm, Action act);
 Action getAction(Program myPrgm, int index);
 void freeProgram(Program myPgrm);
+
+
+/* --- Run Prgm --- */
+
+void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack myStack);

@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #endif
 
-#include "header.h"
+#include "prgmStructure.h"
 
 /* Initiate a variable */
 
@@ -40,6 +40,53 @@ DataStack newDataStack(){
     initVar->var = NULL;
     initVar->next = NULL;
     return initVar;
+}
+
+Stack newStack(){
+    Stack myStack = malloc(sizeof(Stack));
+    myStack->stack = NULL;
+    return myStack;
+}
+
+bool StackisEmpty(Stack stack){
+    return stack->stack = NULL;
+}
+
+void freeIntStack(IntStack stack){
+    if(stack){
+        freeIntStack(stack->next);
+        free(stack);
+    }
+}
+
+void freeStack(Stack stack){
+    freeIntStack(stack->stack);
+    free(stack);
+}
+
+void removeStack(Stack stack){
+    freeIntStack(stack->stack);
+    stack->stack=NULL;
+}
+
+void changeStack(Stack stack, IntStack intStack){
+    removeStack(stack);
+    stack->stack = intStack;
+}
+
+void appendInt(Stack stack, int value){
+    IntStack myStack = malloc(sizeof(IntStack));
+    myStack->next = stack->stack;
+    myStack->value = value;
+    stack->stack = myStack;
+}
+
+int removeLastValue(Stack stack){
+    int value = stack->stack->value;
+    IntStack next  = stack->stack->next;
+    free(stack->stack);
+    stack->stack = next;
+    return value;
 }
 
 Data newData(){
@@ -374,11 +421,11 @@ void freeParameter(FctParameters parameter){
     }
 }
 
-char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs){
+char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, Stack myStack){
     char *response;
     if(parameter->nextParameter && !parameter->nextParameter->executed){
         printf("CallBack of the next parameter (from %d), ", parameter->calc);
-        response = getCallBack(parameter->nextParameter, myData, myCalculs);
+        response = getCallBack(parameter->nextParameter, myData, myCalculs, myStack);
         printf("Response got %s\n", response);
         if(strcmp(response, "")!=0){
             return response;
@@ -386,7 +433,7 @@ char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs){
     }
     
     printf("CallBack myself %d, ",parameter->calc);
-    response = getCalcCallBack(getCalc(myCalculs, parameter->calc), myData, myCalculs);
+    response = getCalcCallBack(getCalc(myCalculs, parameter->calc), myData, myCalculs, myStack);
     printf("Response got %s\n", response);
     if(strcmp(response, "")!=0){
         return response;
@@ -434,7 +481,7 @@ void freeFctRegistered(FctRegister fct){
     free(fct);
 }
 
-char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc){
+char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Stack myStack){
     if(isVarExist(myData, "return") && (!fct->parameters || fct->parameters->executed)){
         fct->value = getVar(myData, "return")->value;
         deleteVar(myData, "return");
@@ -449,15 +496,13 @@ char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc){
         return fct->name;
     }else{
         char *response;
-        response = getCallBack(fct->parameters, myData, myCalc);
+        response = getCallBack(fct->parameters, myData, myCalc, myStack);
         if(strcmp(response,"")!=0){
             return response;
         }
     }
 
-    /* TODO stocker la pile des paramètres dans la pile */
-    getParametersValues(fct->parameters);
-
+    changeStack(myStack, getParametersValues(fct->parameters));
     return fct->name;
 }
 
@@ -492,11 +537,11 @@ void storeFctCalc(AllCalcFct allFct, FctRegister fct){
     }
 }
 
-char *getCallBackInAll(AllCalcFct allFct, Data myData, CalcStorage myCalc){
+char *getCallBackInAll(AllCalcFct allFct, Data myData, CalcStorage myCalc, Stack myStack){
     char *response;
     for(int i=0;i<allFct->lastElement; i=i+1){
         if(!allFct->line[i]->executed){
-            response = getFctCallBack(allFct->line[i], myData, myCalc);
+            response = getFctCallBack(allFct->line[i], myData, myCalc, myStack);
             if(strcmp(response, "")!=0){
                 return response;
             }
@@ -528,8 +573,8 @@ void freeCalcul(Calcul calc){
     free(calc);
 }
 
-char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage){
-    return getCallBackInAll(myCalc->fct, myData, myCalcStorage);
+char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage, Stack myStack){
+    return getCallBackInAll(myCalc->fct, myData, myCalcStorage, myStack);
 }
 
 int runCalcul(Calcul myCalc, Data myData){
@@ -692,31 +737,43 @@ void freeProgram(Program myPgrm){
     free(myPgrm);
 }
 
-void runProgram(Program myPrgm, CalcStorage calculs, Data variables){
+void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack myStack){
     int i = 0;
     Action currentAction = getAction(myPrgm, i);
     while(currentAction->type!=5 && i<myPrgm->lastElement){
         if(currentAction->type==0){ /* assigment */
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs); 
-            if(strcmp(response, "")==0){
-                if(isVarExist(variables, currentAction->varName)){
-                    getVar(variables, currentAction->varName)->value = runCalcul(getCalc(calculs, currentAction->calc), variables);
+            if(StackisEmpty(myStack)){
+                if(currentAction->calc>=0){
+                    char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
+                    if(strcmp(response, "")==0){
+                        if(isVarExist(variables, currentAction->varName)){
+                            getVar(variables, currentAction->varName)->value = runCalcul(getCalc(calculs, currentAction->calc), variables);
+                        }else{
+                            storeVar(variables, newVar(currentAction->varName, "int", runCalcul(getCalc(calculs, currentAction->calc), variables)));
+                        }
+                        i = i+1;
+                    }else{
+                        if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
+                            storeVar(variables, newVar("", "context", i));
+                            i = getVar(variables, response)->value;
+                        }else{
+                            printf("The function %s doesn't exist\n", response);
+                            i = i+1;
+                        }
+                    }
                 }else{
-                    storeVar(variables, newVar(currentAction->varName, "int", runCalcul(getCalc(calculs, currentAction->calc), variables)));
-                }
-                i = i+1;
-            }else{
-                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                    storeVar(variables, newVar("", "context", i));
-                    i = getVar(variables, response)->value;
-                }else{
-                    printf("The function %s doesn't exist\n", response);
                     i = i+1;
                 }
+            }else{
+                if(isVarExist(variables, currentAction->varName)){
+                    getVar(variables, currentAction->varName)->value = removeLastValue(myStack);
+                }else{
+                    storeVar(variables, newVar(currentAction->varName, "int", removeLastValue(myStack)));
+                }
+                i = i+1;
             }
-
         }else if(currentAction->type==1){/* print calcul */
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs);
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 printf("%d\n", runCalcul(getCalc(calculs, currentAction->calc), variables));
                 i = i+1;
@@ -730,7 +787,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables){
                 }
             }
         }else if(currentAction->type==2){
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs);
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 if(runCalcul(getCalc(calculs, currentAction->calc), variables)){
                     i = i+2;
@@ -749,7 +806,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables){
         }else if(currentAction->type==3){/* goto line */
             i = currentAction->line;
         }else if(i==4){ /* exit fct */
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs);
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 i = freeContext(variables);
                 storeVar(variables, newVar("return", "return", runCalcul(getCalc(calculs, currentAction->calc), variables)));
@@ -769,7 +826,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables){
     }
 }
 
-int main(){
+int oldmain(){
     Data myData = newData();
     storeVar(myData, newVar("myInt", "int", 15));
     CalcStorage calculs = newCalcStorage();
@@ -787,12 +844,12 @@ int main(){
     char *response;
     int i = 0;
 
-    response = getCalcCallBack(getCalc(calculs,4),myData, calculs);
+    response = getCalcCallBack(getCalc(calculs,4),myData, calculs, newStack());
     while(strcmp(response, "")!=0){
         printf("CallBack the function : %s\n", response);
         storeVar(myData, newVar("return", "int", i));
         i = i+1;
-        response = getCalcCallBack(getCalc(calculs,4),myData, calculs);
+        response = getCalcCallBack(getCalc(calculs,4),myData, calculs, newStack());
     }
     
     printf("Calcul %d\n", runCalcul(getCalc(calculs, 4), myData));
