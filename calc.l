@@ -19,7 +19,6 @@
 "if"            {return IF;}
 "else"          {return ELSE;}
 "print"		    {return print;}
-"exit"		    {return exit_command;}
 [0-9]+          {yylval.num = atoi(yytext); return NUMBER;}
 [ \t]           ; /* ignore les blancs et tabulations */
 \n              ;

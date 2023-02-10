@@ -395,9 +395,9 @@ int runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
 }
 
 void incrementFctIndex(CalculNb tree, int num){
-    if(tree->symbole->type == 2){
+    if(tree && tree->symbole->type == 2){
         tree->symbole->value = tree->symbole->value + num;
-    }else if(tree->symbole->type == 3){
+    }else if(tree && tree->symbole->type == 3){
         incrementFctIndex(tree->leftChild, num);
         incrementFctIndex(tree->rightChild, num);
     }
@@ -740,7 +740,7 @@ void freeProgram(Program myPgrm){
 void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack myStack){
     int i = 0;
     Action currentAction = getAction(myPrgm, i);
-    while(currentAction->type!=5 && i<myPrgm->lastElement){
+    while(i<myPrgm->lastElement){
         if(currentAction->type==0){ /* assigment */
             if(StackisEmpty(myStack)){
                 if(currentAction->calc>=0){
@@ -822,7 +822,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
         }else{
             i = i+1;
         }
-        currentAction = getAction(myPrgm, i);
+        if(i<myPrgm->lastElement){
+            currentAction = getAction(myPrgm, i);
+        }
     }
 }
 

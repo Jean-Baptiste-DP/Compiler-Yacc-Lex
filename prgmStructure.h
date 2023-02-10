@@ -1,3 +1,9 @@
+#ifndef __cplusplus
+#ifndef bool
+#include <stdbool.h>
+#endif
+#endif
+
 /* --- Type definition --- */
 
 typedef struct intStack{
@@ -21,13 +27,12 @@ typedef struct calcTree{
     struct calcTree *rightChild;
 }*CalculNb;
 
-typedef struct fctParameters
-{
+typedef struct fctParameters{
     int calc;
     bool executed;
     int value;
     struct fctParameters *nextParameter;
-} *FctParameters;
+}*FctParameters;
 
 typedef struct fctRegister
 {
@@ -190,6 +195,9 @@ Program newPrgm();
 void storeAction(Program myPrgm, Action act);
 Action getAction(Program myPrgm, int index);
 void freeProgram(Program myPgrm);
+
+/* --- Build Prgm --- */
+
 
 
 /* --- Run Prgm --- */

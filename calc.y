@@ -1,46 +1,51 @@
 %{
 /* Definition section */
+#include <stdbool.h>
+#include "prgmStructure.h"
 #include <stdio.h>     /* C declarations used in actions */
 #include <stdlib.h>
-#include <stdbool.h>
 #include <ctype.h>
-#include "prgmStructure.h"
 int flag=0;
 void yyerror();
 int yylex();
 
-/* Data variables = newData(); */
+/* Data variables = newData(); 
 struct AllVariables allVar = {.var = NULL, .next = NULL};
 struct data dat = {.myData = &allVar};
-Data variables = &dat;
+Data variables = &dat;*/
 
-/* Stack myStack = newStack(); */
+/* Stack myStack = newStack(); 
 struct stack stack = {.stack = NULL};
-Stack myStack = &stack;
+Stack myStack = &stack;*/
 
-/* Program myPrgm = newPrgm(); */
+/* Program myPrgm = newPrgm(); 
 Action listePrgm[4];
 struct prgmLine prgm = {.length = 4, .lastElement = 0, .line = listePrgm};
-Program myPrgm = &prgm;
+Program myPrgm = &prgm;*/
 
-/* CalcStorage myCalc = newCalcStorage(); */
+/* CalcStorage myCalc = newCalcStorage(); 
 Calcul listeCalc[4];
 struct calcLine calc = {.length = 4, .lastElement = 0, .line = listeCalc};
-CalcStorage myCalc = &calc;
-%}
+CalcStorage myCalc = &calc;*/
 
+Data variables = NULL;
+Stack myStack = NULL;
+Program myPrgm = NULL;
+CalcStorage myCalc = NULL;
+%}
 
 %union {
     int num; 
     int boolean;
+    struct calcul *calc;
 }
+
 %start line
 %token <num> NUMBER
 %token <boolean> TRUE FALSE
-%type <boolean> Condition
-%type <num> Expression
+%type <calc> Condition
+%type <calc> Expression
 %token print
-%token exit_command
 %nonassoc IF
 %nonassoc ELSE
 %left AND
@@ -51,7 +56,8 @@ CalcStorage myCalc = &calc;
 %left '*' '/' '%'
 %nonassoc UMINUS
 %left '(' ')' '{' '}'
-%left '&' '|' '!' 
+%left '&' '|'
+%left '!'
 
 
 /* Rule Section */
@@ -62,35 +68,34 @@ line : action ';' {;}
 | line action ';' {;}
 ;
 
-action : print'('Expression')'  {printf("Integer : %d\n", $3);}
-| print'(' Condition ')'        {printf("Boolean : %d\n", $3);}
-| exit_command                  {exit(EXIT_SUCCESS);}
+action : print '('Expression')'  {storeAction(myPrgm,newAction(1,"",0,storeCalcul(myCalc, $3)));}
+| print'(' Condition ')'        {storeAction(myPrgm,newAction(1,"",0,storeCalcul(myCalc, $3)));}
 | ifFunction                    {;}
 | '{' line '}'                  {;}
 ;
 
-Expression:Expression'*'Expression  {$$=$1*$3;}
-|Expression'/'Expression            {$$=$1/$3;}
-|Expression'+'Expression            {$$=$1+$3;}
-|Expression'-'Expression            {$$=$1-$3;}
-|Expression'%'Expression            {$$=$1%$3;}
+Expression:Expression'*'Expression  {$$=OpeCalc(0,$1,$3);}
+|Expression'/'Expression            {$$=OpeCalc(1,$1,$3);}
+|Expression'+'Expression            {$$=OpeCalc(2,$1,$3);}
+|Expression'-'Expression            {$$=OpeCalc(3,$1,$3);}
+|Expression'%'Expression            {$$=OpeCalc(4,$1,$3);}
 |'('Expression')'                   {$$=$2;}
-|'-' Expression %prec UMINUS        {$$=-$2;}
-| NUMBER                            {$$=$1;}
+|'-' Expression %prec UMINUS        {$$=OpeCalc(5,$2,newCalc(NULL, noFctinCalc()));}
+| NUMBER                            {$$=ConstCalc($1);}
 ;
 
-Condition : NOT Condition               {$$= !$2;}
-| Condition OR Condition                {$$=$1 || $3;}
-| Condition AND Condition               {$$=$1 && $3;}
+Condition : NOT Condition               {$$=OpeCalc(6,$2,newCalc(NULL, noFctinCalc()));}
+| Condition OR Condition                {$$=OpeCalc(7,$1,$3);}
+| Condition AND Condition               {$$=OpeCalc(8,$1,$3);}
 | '('Condition')'                       {$$ = $2;}
-| TRUE                                  {$$ = true;}
-| FALSE                                 {$$ = false;}
-| Expression EQ Expression              {$$ = $1 == $3;}
-| Expression NEQ Expression             {$$ = $1 != $3;}
-| Expression GEQ Expression             {$$ = $1 >= $3;}
-| Expression LEQ Expression             {$$ = $1 <= $3;}
-| Expression GNEQ Expression            {$$ = $1 > $3;}
-| Expression LNEQ Expression            {$$ = $1 < $3;}
+| TRUE                                  {$$ = ConstCalc(true);}
+| FALSE                                 {$$ = ConstCalc(false);}
+| Expression EQ Expression              {$$ = OpeCalc(9,$1,$3);}
+| Expression NEQ Expression             {$$ = OpeCalc(10,$1,$3);}
+| Expression GEQ Expression             {$$ = OpeCalc(11,$1,$3);}
+| Expression LEQ Expression             {$$ = OpeCalc(12,$1,$3);}
+| Expression GNEQ Expression            {$$ = OpeCalc(13,$1,$3);}
+| Expression LNEQ Expression            {$$ = OpeCalc(14,$1,$3);}
 ;
 
 
@@ -106,5 +111,14 @@ void yyerror()
 }
 
 int main(){
+    variables = newData();
+    myStack = newStack();
+    myPrgm = newPrgm();
+    myCalc = newCalcStorage();
     yyparse();
+    runProgram(myPrgm, myCalc, variables, myStack);
+    freeProgram(myPrgm);
+    freeCalcStorage(myCalc);
+    freeData(variables);
+    freeStack(myStack);
 }
