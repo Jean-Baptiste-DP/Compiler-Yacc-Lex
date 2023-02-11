@@ -9,24 +9,6 @@ int flag=0;
 void yyerror();
 int yylex();
 
-/* Data variables = newData(); 
-struct AllVariables allVar = {.var = NULL, .next = NULL};
-struct data dat = {.myData = &allVar};
-Data variables = &dat;*/
-
-/* Stack myStack = newStack(); 
-struct stack stack = {.stack = NULL};
-Stack myStack = &stack;*/
-
-/* Program myPrgm = newPrgm(); 
-Action listePrgm[4];
-struct prgmLine prgm = {.length = 4, .lastElement = 0, .line = listePrgm};
-Program myPrgm = &prgm;*/
-
-/* CalcStorage myCalc = newCalcStorage(); 
-Calcul listeCalc[4];
-struct calcLine calc = {.length = 4, .lastElement = 0, .line = listeCalc};
-CalcStorage myCalc = &calc;*/
 
 Data variables = NULL;
 Stack myStack = NULL;
@@ -38,16 +20,22 @@ CalcStorage myCalc = NULL;
     int num; 
     int boolean;
     struct calcul *calc;
+    char *varName;
 }
 
 %start line
 %token <num> NUMBER
 %token <boolean> TRUE FALSE
+
 %type <calc> Condition
 %type <calc> Expression
+%type <calc> Calcul
 %token print
 %nonassoc IF
 %nonassoc ELSE
+%nonassoc LET
+%nonassoc ASSIGN
+%token <varName> VARNAME
 %left AND
 %left OR /*The order of the token show the priority of computation NOT in priority in front of AND and OR*/
 %left NOT
@@ -64,15 +52,20 @@ CalcStorage myCalc = NULL;
 
 %%
 
-line : action ';' {;}
-| line action ';' {;}
+line : action {;}
+| line action {;}
 ;
 
-action : print '('Expression')'  {storeAction(myPrgm,newAction(1,"",0,storeCalcul(myCalc, $3)));}
-| print'(' Condition ')'        {storeAction(myPrgm,newAction(1,"",0,storeCalcul(myCalc, $3)));}
-| ifFunction                    {;}
+action : print '('Calcul')' ';' {storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3)));}
+| IF Condition                  {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2))); gotoFrom(myStack, myPrgm);} endif
+| LET VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4))); free($2);}
+| LET VARNAME ';'               {storeAction(myPrgm,newAction(1, $2, 0, -1));}
+| VARNAME ASSIGN Calcul ';'     {storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3))); free($1);}
 | '{' line '}'                  {;}
 ;
+
+Calcul : Expression     {$$=$1;}
+| Condition             {$$=$1;}
 
 Expression:Expression'*'Expression  {$$=OpeCalc(0,$1,$3);}
 |Expression'/'Expression            {$$=OpeCalc(1,$1,$3);}
@@ -82,6 +75,7 @@ Expression:Expression'*'Expression  {$$=OpeCalc(0,$1,$3);}
 |'('Expression')'                   {$$=$2;}
 |'-' Expression %prec UMINUS        {$$=OpeCalc(5,$2,newCalc(NULL, noFctinCalc()));}
 | NUMBER                            {$$=ConstCalc($1);}
+| VARNAME                           {$$=VarCalc($1);free($1);}
 ;
 
 Condition : NOT Condition               {$$=OpeCalc(6,$2,newCalc(NULL, noFctinCalc()));}
@@ -98,15 +92,15 @@ Condition : NOT Condition               {$$=OpeCalc(6,$2,newCalc(NULL, noFctinCa
 | Expression LNEQ Expression            {$$ = OpeCalc(14,$1,$3);}
 ;
 
-
-ifFunction : IF Condition action ELSE action    {if($2){;}else{;};}
-| IF Condition action                           {if($2){;};}
-;
+endif : '{' line '}' ELSE           {gotoDest(myStack, myPrgm, 1);gotoFrom(myStack, myPrgm);} 
+action                              {gotoDest(myStack, myPrgm, 0);}
+| action                            {gotoDest(myStack, myPrgm, 0);}
 %%
 
-void yyerror()
+void yyerror(char *error)
 {
-    printf("\nEntered arithmetic expression is Invalid\n\n");
+    printf("\nEntered arithmetic expression is Invalid\n");
+    printf("Erreur : %s\n\n", error);
     flag=1;
 }
 
@@ -116,6 +110,7 @@ int main(){
     myPrgm = newPrgm();
     myCalc = newCalcStorage();
     yyparse();
+    displayPrgm(myPrgm);
     runProgram(myPrgm, myCalc, variables, myStack);
     freeProgram(myPrgm);
     freeCalcStorage(myCalc);

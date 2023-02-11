@@ -100,6 +100,7 @@ void freeVar(Variable var);
 DataStack newDataStack();
 bool isEmptyStack(DataStack variables);
 bool isVarExistStack(DataStack variables, char *name);
+bool isVarExistInContextStack(DataStack variables, char *name);
 Variable getVarStack(DataStack variables, char *name);
 DataStack deleteVarStack(DataStack variables, char *name);
 DataStack storeVarStack(DataStack variables, Variable var);
@@ -123,6 +124,7 @@ int removeLastValue(Stack stack);
 Data newData();
 bool isEmpty(Data variables);
 bool isVarExist(Data variables, char *name);
+bool isVarExistInContext(Data variables, char *name);
 Variable getVar(Data variables, char *name);
 void deleteVar(Data variables, char *name);
 void storeVar(Data variables, Variable var);
@@ -192,13 +194,17 @@ void freeAction(Action act);
 /* --- Program Line --- */
 
 Program newPrgm();
-void storeAction(Program myPrgm, Action act);
+int storeAction(Program myPrgm, Action act);
 Action getAction(Program myPrgm, int index);
 void freeProgram(Program myPgrm);
 
 /* --- Build Prgm --- */
 
-
+void gotoFrom(Stack myStack, Program myPrgm);
+void gotoDest(Stack myStack, Program myPrgm, int additionalPos);
+void forConditionGoto(Stack myStack, Program myPrgm);
+void forEndGoto(Stack myStack, Program myPrgm);
+void displayPrgm(Program myPrgm);
 
 /* --- Run Prgm --- */
 

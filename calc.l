@@ -19,7 +19,15 @@
 "if"            {return IF;}
 "else"          {return ELSE;}
 "print"		    {return print;}
+"let"           {return LET;}
+"="             {return ASSIGN;}
 [0-9]+          {yylval.num = atoi(yytext); return NUMBER;}
+[a-zA-Z][a-zA-Z0-9_]*   {
+                            char *myvar = malloc(strlen(yytext)*sizeof(char));
+                            strcpy(myvar, yytext);
+                            yylval.varName = myvar;
+                            return VARNAME;
+                        }
 [ \t]           ; /* ignore les blancs et tabulations */
 \n              ;
 .               return yytext[0];

@@ -49,7 +49,7 @@ Stack newStack(){
 }
 
 bool StackisEmpty(Stack stack){
-    return stack->stack = NULL;
+    return stack->stack == NULL;
 }
 
 void freeIntStack(IntStack stack){
@@ -120,8 +120,25 @@ bool isVarExistStack(DataStack variables, char *name){
     }
 }
 
+bool isVarExistInContextStack(DataStack variables, char *name){
+    if(isEmptyStack(variables) || strcmp(variables->var->type, "context")==0){
+        return false;
+    }
+    else{
+        if(strcmp(variables->var->name,name)==0){
+            return true;
+        }else{
+            return isVarExistStack(variables->next,name);
+        }
+    }
+}
+
 bool isVarExist(Data variables, char *name){
     return isVarExistStack(variables->myData, name);
+}
+
+bool isVarExistInContext(Data variables, char *name){
+    return isVarExistInContextStack(variables->myData, name);
 }
 
 /* Return the specific variable */
@@ -700,7 +717,7 @@ Program newPrgm(){
 
 /* Store action in program */
 
-void storeAction(Program myPrgm, Action action){
+int storeAction(Program myPrgm, Action action){
     if(myPrgm->lastElement == myPrgm->length){
         int size = 2* myPrgm->length;
         Action *line = myPrgm->line;
@@ -716,6 +733,7 @@ void storeAction(Program myPrgm, Action action){
         myPrgm->line[myPrgm->lastElement] = action;
         myPrgm->lastElement=myPrgm->lastElement+1;
     }
+    return myPrgm->lastElement-1;
 }
 
 /* give the given action */
@@ -737,6 +755,34 @@ void freeProgram(Program myPgrm){
     free(myPgrm);
 }
 
+void gotoFrom(Stack myStack, Program myPrgm){
+    appendInt(myStack,storeAction(myPrgm,newAction(4,"",-1,0)));
+}
+void gotoDest(Stack myStack, Program myPrgm, int additionalPos){
+    myPrgm->line[removeLastValue(myStack)]->line = myPrgm->lastElement+additionalPos;
+}
+
+void forConditionGoto(Stack myStack, Program myPrgm){
+
+}
+
+void forEndGoto(Stack myStack, Program myPrgm){
+
+}
+
+void displayPrgm(Program myPrgm){
+    for(int i=0; i<myPrgm->lastElement;i = i+1){
+        printf("Line %d - ", i);
+        if(myPrgm->line[i]->type==2){
+            printf("Print calcul : %d\n", myPrgm->line[i]->calc);
+        }else if(myPrgm->line[i]->type==3){
+            printf("If calcul : %d\n", myPrgm->line[i]->calc);
+        }else if(myPrgm->line[i]->type==4){
+            printf("Goto line : %d\n", myPrgm->line[i]->line);
+        }
+    }
+}
+
 void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack myStack){
     int i = 0;
     Action currentAction = getAction(myPrgm, i);
@@ -749,7 +795,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                         if(isVarExist(variables, currentAction->varName)){
                             getVar(variables, currentAction->varName)->value = runCalcul(getCalc(calculs, currentAction->calc), variables);
                         }else{
-                            storeVar(variables, newVar(currentAction->varName, "int", runCalcul(getCalc(calculs, currentAction->calc), variables)));
+                            printf("Variable \"%s\" hasn't been declared\nlet %s; to declare it\n", currentAction->varName, currentAction->varName);
                         }
                         i = i+1;
                     }else{
@@ -772,7 +818,42 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                 }
                 i = i+1;
             }
-        }else if(currentAction->type==1){/* print calcul */
+        }else if(currentAction->type==1){/* new Variable */
+            if(StackisEmpty(myStack)){
+                if(currentAction->calc>=0){
+                    char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
+                    if(strcmp(response, "")==0){
+                        if(isVarExistInContext(variables, currentAction->varName)){
+                            printf("Variable \"%s\" has already been declared\n", currentAction->varName);
+                        }else{
+                            storeVar(variables, newVar(currentAction->varName, "int", runCalcul(getCalc(calculs, currentAction->calc), variables)));
+                        }
+                        i = i+1;
+                    }else{
+                        if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
+                            storeVar(variables, newVar("", "context", i));
+                            i = getVar(variables, response)->value;
+                        }else{
+                            printf("The function %s doesn't exist\n", response);
+                            i = i+1;
+                        }
+                    }
+                }else{
+                    if(!isVarExistInContext(variables, currentAction->varName)){
+                        storeVar(variables, newVar(currentAction->varName, "int", 0));
+                    }
+                    i = i+1;
+                }
+            }else{
+                if(isVarExistInContext(variables, currentAction->varName)){
+                    printf("Variable \"%s\" has already been declared\n", currentAction->varName);
+                }else{
+                    storeVar(variables, newVar(currentAction->varName, "int", removeLastValue(myStack)));
+                }
+                i = i+1;
+            }
+        }
+        else if(currentAction->type==2){/* print calcul */
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 printf("%d\n", runCalcul(getCalc(calculs, currentAction->calc), variables));
@@ -786,7 +867,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                     i = i+1;
                 }
             }
-        }else if(currentAction->type==2){
+        }else if(currentAction->type==3){/* if function */
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 if(runCalcul(getCalc(calculs, currentAction->calc), variables)){
@@ -803,9 +884,11 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                     i = i+1;
                 }
             }
-        }else if(currentAction->type==3){/* goto line */
-            i = currentAction->line;
-        }else if(i==4){ /* exit fct */
+        }else if(currentAction->type==4){/* goto line */
+            if(currentAction->line>=0){
+                i = currentAction->line;
+            }
+        }else if(i==5){ /* exit fct */
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 i = freeContext(variables);
