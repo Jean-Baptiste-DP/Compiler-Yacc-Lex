@@ -19,6 +19,7 @@
 "if"            {return IF;}
 "else"          {return ELSE;}
 "for"           {return FOR;}
+"while"         {return WHILE;}
 "print"		    {return print;}
 "let"           {return LET;}
 "="             {return ASSIGN;}

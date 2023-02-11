@@ -34,6 +34,7 @@ CalcStorage myCalc = NULL;
 %nonassoc IF
 %nonassoc ELSE
 %nonassoc FOR
+%nonassoc WHILE
 %nonassoc LET
 %nonassoc ASSIGN
 %token <varName> VARNAME
@@ -60,6 +61,7 @@ line : action {;}
 action : print '('Calcul')' ';' {storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3)));}
 | IF Condition                  {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2))); gotoFrom(myStack, myPrgm);} endif
 | forLoop                       {;}
+| whileLoop                     {;}
 | LET VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4))); free($2);}
 | LET VARNAME ';'               {storeAction(myPrgm,newAction(1, $2, 0, -1));}
 | VARNAME ASSIGN Calcul ';'     {storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3))); free($1);}
@@ -103,6 +105,9 @@ forLoop : FOR '(' LET VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1,
 Condition ';'                                   {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $9)));gotoFrom(myStack, myPrgm);}
 VARNAME ASSIGN Calcul ')' '{' line '}'          {storeAction(myPrgm,newAction(0, $12, 0, storeCalcul(myCalc, $14)));forEndGoto(myStack, myPrgm, $4);free($4);free($12);}
 ;
+
+whileLoop : WHILE Condition     {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2)));gotoFrom(myStack, myPrgm);}
+'{' line '}'                    {whileEndGoto(myStack, myPrgm);}
 %%
 
 void yyerror(char *error)

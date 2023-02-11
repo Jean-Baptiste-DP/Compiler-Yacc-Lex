@@ -768,6 +768,11 @@ void forEndGoto(Stack myStack, Program myPrgm, char *loopVar){
     storeAction(myPrgm, newAction(6,loopVar,0,0));
 }
 
+void whileEndGoto(Stack myStack, Program myPrgm){
+    int firstPos = removeLastValue(myStack);
+    myPrgm->line[firstPos]->line = storeAction(myPrgm,newAction(4,"",firstPos-1,0))+1;
+}
+
 void displayPrgm(Program myPrgm){
     for(int i=0; i<myPrgm->lastElement;i = i+1){
         printf("Line %d - ", i);
