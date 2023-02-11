@@ -1,8 +1,6 @@
-if(False){
-    print(0);
-}else if(False){
-    print(1);
-    print(2);
+for(let i = 0; i<5; i = i+1){
+    print(i);
 }
-print(3);
-print(4);
+print(10);
+print(11);
+print(i);

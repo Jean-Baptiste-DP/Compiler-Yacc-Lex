@@ -18,6 +18,7 @@
 "<"             {return LNEQ;}
 "if"            {return IF;}
 "else"          {return ELSE;}
+"for"           {return FOR;}
 "print"		    {return print;}
 "let"           {return LET;}
 "="             {return ASSIGN;}

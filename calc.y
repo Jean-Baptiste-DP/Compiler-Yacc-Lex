@@ -33,6 +33,7 @@ CalcStorage myCalc = NULL;
 %token print
 %nonassoc IF
 %nonassoc ELSE
+%nonassoc FOR
 %nonassoc LET
 %nonassoc ASSIGN
 %token <varName> VARNAME
@@ -58,6 +59,7 @@ line : action {;}
 
 action : print '('Calcul')' ';' {storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3)));}
 | IF Condition                  {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2))); gotoFrom(myStack, myPrgm);} endif
+| forLoop                       {;}
 | LET VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4))); free($2);}
 | LET VARNAME ';'               {storeAction(myPrgm,newAction(1, $2, 0, -1));}
 | VARNAME ASSIGN Calcul ';'     {storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3))); free($1);}
@@ -95,6 +97,12 @@ Condition : NOT Condition               {$$=OpeCalc(6,$2,newCalc(NULL, noFctinCa
 endif : '{' line '}' ELSE           {gotoDest(myStack, myPrgm, 1);gotoFrom(myStack, myPrgm);} 
 action                              {gotoDest(myStack, myPrgm, 0);}
 | action                            {gotoDest(myStack, myPrgm, 0);}
+;
+
+forLoop : FOR '(' LET VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $4, 0, storeCalcul(myCalc, $6)));}
+Condition ';'                                   {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $9)));gotoFrom(myStack, myPrgm);}
+VARNAME ASSIGN Calcul ')' '{' line '}'          {storeAction(myPrgm,newAction(0, $12, 0, storeCalcul(myCalc, $14)));forEndGoto(myStack, myPrgm, $4);free($4);free($12);}
+;
 %%
 
 void yyerror(char *error)

@@ -203,7 +203,7 @@ void freeProgram(Program myPgrm);
 void gotoFrom(Stack myStack, Program myPrgm);
 void gotoDest(Stack myStack, Program myPrgm, int additionalPos);
 void forConditionGoto(Stack myStack, Program myPrgm);
-void forEndGoto(Stack myStack, Program myPrgm);
+void forEndGoto(Stack myStack, Program myPrgm, char *loopVar);
 void displayPrgm(Program myPrgm);
 
 /* --- Run Prgm --- */

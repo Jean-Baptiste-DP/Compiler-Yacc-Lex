@@ -762,12 +762,10 @@ void gotoDest(Stack myStack, Program myPrgm, int additionalPos){
     myPrgm->line[removeLastValue(myStack)]->line = myPrgm->lastElement+additionalPos;
 }
 
-void forConditionGoto(Stack myStack, Program myPrgm){
-
-}
-
-void forEndGoto(Stack myStack, Program myPrgm){
-
+void forEndGoto(Stack myStack, Program myPrgm, char *loopVar){
+    int firstPos = removeLastValue(myStack);
+    myPrgm->line[firstPos]->line = storeAction(myPrgm,newAction(4,"",firstPos-1,0))+1;
+    storeAction(myPrgm, newAction(6,loopVar,0,0));
 }
 
 void displayPrgm(Program myPrgm){
@@ -779,6 +777,10 @@ void displayPrgm(Program myPrgm){
             printf("If calcul : %d\n", myPrgm->line[i]->calc);
         }else if(myPrgm->line[i]->type==4){
             printf("Goto line : %d\n", myPrgm->line[i]->line);
+        }else if(myPrgm->line[i]->type<2){
+            printf("Assignment var : %s\n", myPrgm->line[i]->varName);
+        }else if(myPrgm->line[i]->type==6){
+            printf("Kill var : %s\n", myPrgm->line[i]->varName);
         }
     }
 }
@@ -888,7 +890,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
             if(currentAction->line>=0){
                 i = currentAction->line;
             }
-        }else if(i==5){ /* exit fct */
+        }else if(currentAction->type==5){ /* exit fct */
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 i = freeContext(variables);
@@ -902,6 +904,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                     i = i+1;
                 }
             }
+        }else if(currentAction->type==6){
+            deleteVar(variables, currentAction->varName);
+            i = i+1;
         }else{
             i = i+1;
         }
