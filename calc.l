@@ -20,6 +20,8 @@
 "else"          {return ELSE;}
 "for"           {return FOR;}
 "while"         {return WHILE;}
+"function"      {return FUNCT;}
+"return"        {return RETURN;}
 "print"		    {return print;}
 "let"           {return LET;}
 "="             {return ASSIGN;}

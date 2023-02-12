@@ -1,8 +1,16 @@
-let i = 5;
-while i>=0{
-    print(i);
-    i = i-1;
+
+
+
+function recursive(let i){
+    if(i<0){
+        print(2);
+        print(i);
+        return i;
+    }else{
+        print(1);
+        print(recursive(i-1));
+        return i;
+    }
 }
-print(10);
-print(11);
-print(i);
+
+print(recursive(3));

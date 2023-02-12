@@ -118,6 +118,7 @@ void changeStack(Stack stack, IntStack intStack);
 void removeStack(Stack stack);
 void appendInt(Stack stack, int value);
 int removeLastValue(Stack stack);
+void displayStack(Stack stack);
 
 /* --- Data Storage --- */
 
@@ -152,7 +153,7 @@ void incrementFctIndex(CalculNb tree, int num);
 FctParameters addParameter(int calc, FctParameters nextPara);
 void freeParameter(FctParameters parameter);
 char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, Stack myStack);
-IntStack getParametersValues(FctParameters parameter);
+void getParametersValues(FctParameters parameter, Stack myStack);
 void parameterExecutionFalse(FctParameters parameter);
 
 /* --- Functions --- */
@@ -200,7 +201,7 @@ void freeProgram(Program myPgrm);
 
 /* --- Build Prgm --- */
 
-void gotoFrom(Stack myStack, Program myPrgm);
+int gotoFrom(Stack myStack, Program myPrgm);
 void gotoDest(Stack myStack, Program myPrgm, int additionalPos);
 void forEndGoto(Stack myStack, Program myPrgm, char *loopVar);
 void whileEndGoto(Stack myStack, Program myPrgm);

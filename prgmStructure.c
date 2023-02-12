@@ -8,6 +8,9 @@
 
 #include "prgmStructure.h"
 
+#include <unistd.h> /* a enlever */
+
+
 /* Initiate a variable */
 
 Variable newVar(char *name, char *type, int value){
@@ -178,6 +181,17 @@ DataStack deleteVarStack(DataStack variables, char *name){
 
 void deleteVar(Data variables, char *name){
     variables->myData = deleteVarStack(variables->myData, name);
+}
+
+void displayIntStack(IntStack stack){
+    if(stack){
+        displayIntStack(stack->next);
+        printf("Stack value : %d\n", stack->value);
+    }
+}
+
+void displayStack(Stack stack){
+    displayIntStack(stack->stack);
 }
 
 /* Add new variable */
@@ -373,7 +387,6 @@ int runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
     }else if(myCalc->symbole->type==2){ /* fct type */
         FctRegister myFct = fct->line[myCalc->symbole->value];
         myFct->executed = false;
-        printf("From execution of %s, get value %d\n", myFct->name, myFct->value);
         return myFct->value;
     }else if(myCalc->symbole->value==0){
         return runCalculNb(myCalc->leftChild, fct, myData)*runCalculNb(myCalc->rightChild, fct, myData);
@@ -441,17 +454,13 @@ void freeParameter(FctParameters parameter){
 char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, Stack myStack){
     char *response;
     if(parameter->nextParameter && !parameter->nextParameter->executed){
-        printf("CallBack of the next parameter (from %d), ", parameter->calc);
         response = getCallBack(parameter->nextParameter, myData, myCalculs, myStack);
-        printf("Response got %s\n", response);
         if(strcmp(response, "")!=0){
             return response;
         }
     }
     
-    printf("CallBack myself %d, ",parameter->calc);
     response = getCalcCallBack(getCalc(myCalculs, parameter->calc), myData, myCalculs, myStack);
-    printf("Response got %s\n", response);
     if(strcmp(response, "")!=0){
         return response;
     }
@@ -461,16 +470,10 @@ char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, S
     return "";
 }
 
-IntStack getParametersValues(FctParameters parameter){
+void getParametersValues(FctParameters parameter, Stack myStack){
     if(parameter){
-        IntStack nextValues = getParametersValues(parameter->nextParameter);
-        IntStack head = malloc(sizeof(IntStack));
-        head->value = parameter->value;
-        head->next = nextValues;
-        printf("Add new parameter : %d\n", parameter->value);
-        return head;
-    }else{
-        return NULL;
+        getParametersValues(parameter->nextParameter, myStack);
+        appendInt(myStack, parameter->value);
     }
 }
 
@@ -518,8 +521,9 @@ char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Stack myS
             return response;
         }
     }
-
-    changeStack(myStack, getParametersValues(fct->parameters));
+    removeStack(myStack);
+    getParametersValues(fct->parameters, myStack);
+    /*displayStack(myStack);*/
     return fct->name;
 }
 
@@ -755,8 +759,10 @@ void freeProgram(Program myPgrm){
     free(myPgrm);
 }
 
-void gotoFrom(Stack myStack, Program myPrgm){
-    appendInt(myStack,storeAction(myPrgm,newAction(4,"",-1,0)));
+int gotoFrom(Stack myStack, Program myPrgm){
+    int pos = storeAction(myPrgm,newAction(4,"",-1,0));
+    appendInt(myStack,pos);
+    return pos;
 }
 void gotoDest(Stack myStack, Program myPrgm, int additionalPos){
     myPrgm->line[removeLastValue(myStack)]->line = myPrgm->lastElement+additionalPos;
@@ -786,6 +792,10 @@ void displayPrgm(Program myPrgm){
             printf("Assignment var : %s\n", myPrgm->line[i]->varName);
         }else if(myPrgm->line[i]->type==6){
             printf("Kill var : %s\n", myPrgm->line[i]->varName);
+        }else if(myPrgm->line[i]->type==5){
+            printf("Return calc : %d\n", myPrgm->line[i]->calc);
+        }else{
+            printf("Action %d\n", myPrgm->line[i]->type);
         }
     }
 }
@@ -794,6 +804,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
     int i = 0;
     Action currentAction = getAction(myPrgm, i);
     while(i<myPrgm->lastElement){
+        sleep(1);
         if(currentAction->type==0){ /* assigment */
             if(StackisEmpty(myStack)){
                 if(currentAction->calc>=0){
@@ -896,18 +907,25 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                 i = currentAction->line;
             }
         }else if(currentAction->type==5){ /* exit fct */
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
-            if(strcmp(response, "")==0){
-                i = freeContext(variables);
-                storeVar(variables, newVar("return", "return", runCalcul(getCalc(calculs, currentAction->calc), variables)));
-            }else{
-                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                    storeVar(variables, newVar("", "context", i));
-                    i = getVar(variables, response)->value;
+            if(currentAction->calc>=0){
+                char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
+                if(strcmp(response, "")==0){
+                    int returnValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
+                    i = freeContext(variables);
+                    printf("After fct execution return to %d\n",i);
+                    storeVar(variables, newVar("return", "return", returnValue));
+                    
                 }else{
-                    printf("The function %s doesn't exist\n", response);
-                    i = i+1;
+                    if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
+                        storeVar(variables, newVar("", "context", i));
+                        i = getVar(variables, response)->value;
+                    }else{
+                        printf("The function %s doesn't exist\n", response);
+                        i = i+1;
+                    }
                 }
+            }else{
+                i = freeContext(variables);
             }
         }else if(currentAction->type==6){
             deleteVar(variables, currentAction->varName);
