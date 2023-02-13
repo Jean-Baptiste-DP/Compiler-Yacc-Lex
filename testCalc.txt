@@ -1,16 +1,10 @@
-
-
-
-function recursive(let i){
-    if(i<0){
-        print(2);
-        print(i);
-        return i;
+function factoriel(let i=3){
+    if(i<=0){
+        return 1;
     }else{
-        print(1);
-        print(recursive(i-1));
-        return i;
+        print(i);
+        return i*factoriel(i-1);
     }
 }
 
-print(recursive(3));
+print(factoriel(5));

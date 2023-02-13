@@ -29,22 +29,32 @@ typedef struct calcTree{
 
 typedef struct fctParameters{
     int calc;
-    bool executed;
-    int value;
+    Stack value;
     struct fctParameters *nextParameter;
 }*FctParameters;
+
+typedef struct paraResponse{
+    int depth;
+    char *funcName;
+}*ParaResponse;
+
+typedef struct fctStack
+{
+    Stack values;
+    Stack waitingResponse;
+}*FctStack;
 
 typedef struct fctRegister
 {
     char *name;
-    bool executed;
-    int value;
+    FctStack stacks;
     FctParameters parameters;
 }*FctRegister;
 
 typedef struct allCalcFct{
     int length;
     int lastElement;
+    Stack waitingFunctions;
     FctRegister *line;
 }*AllCalcFct;
 
@@ -152,9 +162,20 @@ void incrementFctIndex(CalculNb tree, int num);
 
 FctParameters addParameter(int calc, FctParameters nextPara);
 void freeParameter(FctParameters parameter);
-char *getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, Stack myStack);
+ParaResponse getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, Stack myStack, int waitingDepth);
 void getParametersValues(FctParameters parameter, Stack myStack);
-void parameterExecutionFalse(FctParameters parameter);
+
+/* --- Response of function's parameters --- */
+
+ParaResponse initResp(char *fctName);
+void incrementDepth(ParaResponse resp);
+void freeResp(ParaResponse resp);
+bool isFctInPara(ParaResponse resp);
+
+/* --- Stack for functions --- */
+
+FctStack initFctStack();
+void freeFctStack(FctStack myFctStack);
 
 /* --- Functions --- */
 
