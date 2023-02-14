@@ -559,7 +559,6 @@ char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Stack myS
     ParaResponse resp = getCallBack(fct->parameters, myData, myCalc, myStack, waiting);
     if(isFctInPara(resp)){
         appendInt(fct->stacks->waitingResponse, resp->depth);
-        printf("Call function %s, for parameters\n", resp->funcName);
         return resp->funcName;
     }
     freeResp(resp);
