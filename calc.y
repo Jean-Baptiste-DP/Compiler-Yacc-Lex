@@ -155,5 +155,3 @@ int main(){
     freeData(variables);
     freeStack(myStack);
 }
-
-/* TODO : voir pour améliorer la fonction getFctCallBack pour qu'elle accepte le récursif */

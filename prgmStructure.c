@@ -8,8 +8,6 @@
 
 #include "prgmStructure.h"
 
-#include <unistd.h> /* a enlever */
-
 
 /* Initiate a variable */
 
@@ -129,9 +127,10 @@ bool isVarExistInContextStack(DataStack variables, char *name){
     }
     else{
         if(strcmp(variables->var->name,name)==0){
+            printf("Variable match with %s, type %s\n", variables->var->name, variables->var->type);
             return true;
         }else{
-            return isVarExistStack(variables->next,name);
+            return isVarExistInContextStack(variables->next,name);
         }
     }
 }
@@ -142,6 +141,13 @@ bool isVarExist(Data variables, char *name){
 
 bool isVarExistInContext(Data variables, char *name){
     return isVarExistInContextStack(variables->myData, name);
+}
+
+void printAllVariables(DataStack variables){
+    if(!isEmptyStack(variables)){
+        printf("Type %s, name %s, value %d\n",variables->var->type, variables->var->name, variables->var->value);
+        printAllVariables(variables->next);
+    }
 }
 
 /* Return the specific variable */
@@ -847,7 +853,6 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
     int i = 0;
     Action currentAction = getAction(myPrgm, i);
     while(i<myPrgm->lastElement){
-        /*sleep(1);*/
         if(currentAction->type==0){ /* assigment */
             if(StackisEmpty(myStack)){
                 if(currentAction->calc>=0){
@@ -885,9 +890,11 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                     char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
                     if(strcmp(response, "")==0){
                         if(isVarExistInContext(variables, currentAction->varName)){
-                            printf("Variable \"%s\" has already been declared\n", currentAction->varName);
+                            printf("1 - Variable \"%s\" has already been declared\n", currentAction->varName);
                         }else{
-                            storeVar(variables, newVar(currentAction->varName, "int", runCalcul(getCalc(calculs, currentAction->calc), variables)));
+                            if(currentAction->calc>=0){
+                                storeVar(variables, newVar(currentAction->varName, "int", runCalcul(getCalc(calculs, currentAction->calc), variables)));
+                            }
                         }
                         i = i+1;
                     }else{
@@ -907,7 +914,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                 }
             }else{
                 if(isVarExistInContext(variables, currentAction->varName)){
-                    printf("Variable \"%s\" has already been declared\n", currentAction->varName);
+                    printf("2 - Variable \"%s\" has already been declared\n", currentAction->varName);
                 }else{
                     storeVar(variables, newVar(currentAction->varName, "int", removeLastValue(myStack)));
                 }
@@ -979,42 +986,4 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
             currentAction = getAction(myPrgm, i);
         }
     }
-}
-
-int oldmain(){
-    Data myData = newData();
-    storeVar(myData, newVar("myInt", "int", 15));
-    CalcStorage calculs = newCalcStorage();
-    Calcul myCalcul1 = OpeCalc(3, VarCalc("myInt"), ConstCalc(2));
-    storeCalcul(calculs, myCalcul1); /* calc[0] = myInt - 2 */
-    Calcul myCalcul2 = OpeCalc(2, ConstCalc(4), ConstCalc(2));
-    storeCalcul(calculs, myCalcul2); /* cal[1] = 4+2 */ 
-    Calcul myCalcul3 = OpeCalc(0, ConstCalc(3), FctCalc("fct1", addParameter(0,NULL)));/* fct1(calc[0], calc[1]) */
-    storeCalcul(calculs, myCalcul3); /* calc[2] = 4 * fct1 */
-    Calcul myCalcul4 = OpeCalc(0, ConstCalc(3), FctCalc("fct2", addParameter(1,NULL)));/* fct1(calc[0], calc[1]) */
-    printf("should be 3 : %d\n",storeCalcul(calculs, myCalcul4)); /* calc[3] = fct2 */
-    Calcul myCalcul5 = OpeCalc(2, FctCalc("fct3", addParameter(2, NULL)), FctCalc("fct4", addParameter(3, NULL)));
-    storeCalcul(calculs, myCalcul5);
-
-    char *response;
-    int i = 0;
-
-    response = getCalcCallBack(getCalc(calculs,4),myData, calculs, newStack());
-    while(strcmp(response, "")!=0){
-        printf("CallBack the function : %s\n", response);
-        storeVar(myData, newVar("return", "int", i));
-        i = i+1;
-        response = getCalcCallBack(getCalc(calculs,4),myData, calculs, newStack());
-    }
-    
-    printf("Calcul %d\n", runCalcul(getCalc(calculs, 4), myData));
-
-    freeCalcStorage(calculs);
-    freeData(myData);
-}
-
-int test(){
-    char *string = "Bonjour";
-    Calcul myCalc = FctCalc(string, NULL);
-    freeCalcul(myCalc);
 }

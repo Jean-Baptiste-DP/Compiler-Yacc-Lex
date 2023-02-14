@@ -1,10 +1,10 @@
-function factoriel(let i=3){
-    if(i<=0){
+function i_parmis_j(let i, let j){
+    if(i==0 || i==j){
         return 1;
-    }else{
-        print(i);
-        return i*factoriel(i-1);
+    }
+    else{
+        return i_parmis_j(i-1,j-1)+i_parmis_j(i,j-1);
     }
 }
 
-print(factoriel(5));
+print(i_parmis_j(3,5));
