@@ -148,7 +148,7 @@ int main(){
     myPrgm = newPrgm();
     myCalc = newCalcStorage();
     yyparse();
-    /*displayPrgm(myPrgm);*/
+    displayPrgm(myPrgm);
     runProgram(myPrgm, myCalc, variables, myStack);
     freeProgram(myPrgm);
     freeCalcStorage(myCalc);
