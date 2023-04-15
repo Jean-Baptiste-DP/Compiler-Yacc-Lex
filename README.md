@@ -3,13 +3,13 @@
 ## Running the project
 
 ```bash
-bison -d calc.y
-flex calc.l
-gcc -o calc calc.tab.c lex.yy.c prgmStructure.c stack.c variables.c
-./calc < exFunction.txt
+bison -d compiler.y
+flex compiler.l
+gcc -o compiler compiler.tab.c lex.yy.c prgmStructure.c stack.c variables.c
+./compiler < exFunction.txt
 ```
 
-Once the *calc* file is compile, you can only run the last line to execute your program.
+Once the *compiler* file is compile, you can only run the last line to execute your program.
 
 ## Feature
 

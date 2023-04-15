@@ -1,4 +1,4 @@
-calc
+compiler
 *.tab.*
 lex.yy.c
 a.out
