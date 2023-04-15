@@ -1,3 +1,11 @@
+#define DATA
+
+#ifndef __cplusplus
+#ifndef bool
+#include <stdbool.h>
+#endif
+#endif
+
 typedef struct VariableStruct
 {
     char *name;

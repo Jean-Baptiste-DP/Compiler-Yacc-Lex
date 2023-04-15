@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "calc.tab.h"
+#include "../compiler.tab.h"
 
 extern int ylex();
 extern int yylineno;

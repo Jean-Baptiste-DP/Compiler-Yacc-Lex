@@ -1,10 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __cplusplus
-#ifndef bool
-#include <stdbool.h>
-#endif
-#endif
 
 #include "stack.h"
 

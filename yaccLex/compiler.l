@@ -1,6 +1,6 @@
 %{
 /* fichier dans lequel est defini la macro constante NOMBRE */
-#include "compiler.tab.h"
+#include "./compiler.tab.h"
 %}
 
 %%

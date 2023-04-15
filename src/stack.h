@@ -1,3 +1,11 @@
+#define STACK
+
+#ifndef __cplusplus
+#ifndef bool
+#include <stdbool.h>
+#endif
+#endif
+
 typedef struct intStack{
     int value;
     struct intStack *next;

@@ -1,11 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef __cplusplus
-#ifndef bool
-#include <stdbool.h>
-#endif
-#endif
+
 #include "variables.h"
 
 /* Initiate a variable */

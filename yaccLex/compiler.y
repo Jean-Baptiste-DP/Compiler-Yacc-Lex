@@ -1,7 +1,7 @@
 %{
 /* Definition section */
 #include <stdbool.h>
-#include "prgmStructure.h"
+#include "./src/prgmStructure.h"
 #include <stdio.h>     /* C declarations used in actions */
 #include <stdlib.h>
 #include <ctype.h>
