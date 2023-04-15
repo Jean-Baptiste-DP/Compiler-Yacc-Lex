@@ -4,16 +4,9 @@
 #endif
 #endif
 
+#include "stack.h"
+
 /* --- Type definition --- */
-
-typedef struct intStack{
-    int value;
-    struct intStack *next;
-}*IntStack;
-
-typedef struct stack{
-    IntStack stack;
-}*Stack;
 
 typedef struct calcSym{
     int value;
@@ -117,18 +110,6 @@ DataStack storeVarStack(DataStack variables, Variable var);
 void freeDataStack(DataStack variables);
 DataStack freeContextStack(DataStack variables);
 DataStack freeOneInStack(DataStack variables);
-
-/* --- Stack --- */
-
-Stack newStack();
-bool StackisEmpty(Stack stack);
-void freeIntStack(IntStack stack);
-void freeStack(Stack stack);
-void changeStack(Stack stack, IntStack intStack);
-void removeStack(Stack stack);
-void appendInt(Stack stack, int value);
-int removeLastValue(Stack stack);
-void displayStack(Stack stack);
 
 /* --- Data Storage --- */
 

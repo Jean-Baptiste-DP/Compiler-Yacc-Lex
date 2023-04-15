@@ -5,7 +5,7 @@
 ```bash
 bison -d calc.y
 flex calc.l
-gcc -o calc calc.tab.c lex.yy.c prgmStructure.c
+gcc -o calc calc.tab.c lex.yy.c prgmStructure.c stack.c
 ./calc < exFunction.txt
 ```
 
