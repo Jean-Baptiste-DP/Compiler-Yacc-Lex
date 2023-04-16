@@ -1,3 +1,7 @@
+#ifndef DATA
+#include "../variables.h"
+#endif
+
 #ifndef STACK
 #include "../stack.h"
 #endif
@@ -20,7 +24,7 @@ typedef struct calcTree{
 
 typedef struct fctParameters{
     int calc;
-    Stack value;
+    Data value;
     struct fctParameters *nextParameter;
 }*FctParameters;
 
@@ -31,7 +35,7 @@ typedef struct paraResponse{
 
 typedef struct fctStack
 {
-    Stack values;
+    Data values;
     Stack waitingResponse;
 }*FctStack;
 

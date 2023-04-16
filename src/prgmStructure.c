@@ -120,17 +120,19 @@ void displayPrgm(Program myPrgm){
     }
 }
 
-void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack myStack){
+void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStack){
     int i = 0;
     Action currentAction = getAction(myPrgm, i);
     while(i<myPrgm->lastElement){
         if(currentAction->type==0){ /* assigment */
-            if(StackisEmpty(myStack)){
+            if(isEmpty(myStack)){
                 if(currentAction->calc>=0){
                     char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
                     if(strcmp(response, "")==0){
                         if(isVarExist(variables, currentAction->varName)){
-                            getVar(variables, currentAction->varName)->value = runCalcul(getCalc(calculs, currentAction->calc), variables);
+                            Variable gettedValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
+                            getVar(variables, currentAction->varName)->value = gettedValue->value;
+                            freeVar(gettedValue);
                         }else{
                             printf("Variable \"%s\" hasn't been declared\nlet %s; to declare it\n", currentAction->varName, currentAction->varName);
                         }
@@ -149,14 +151,18 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                 }
             }else{
                 if(isVarExist(variables, currentAction->varName)){
-                    getVar(variables, currentAction->varName)->value = removeLastValue(myStack);
+                    Variable storedValue = lastValue(myStack);
+                    getVar(variables, currentAction->varName)->value = storedValue->value;
+                    freeVar(storedValue);
                 }else{
-                    storeVar(variables, newVar(currentAction->varName, "int", removeLastValue(myStack)));
+                    Variable storedValue = lastValue(myStack);
+                    changeName(storedValue, currentAction->varName, "int");
+                    storeVar(variables, storedValue);
                 }
                 i = i+1;
             }
         }else if(currentAction->type==1){/* new Variable */
-            if(StackisEmpty(myStack)){
+            if(isEmpty(myStack)){
                 if(currentAction->calc>=0){
                     char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
                     if(strcmp(response, "")==0){
@@ -164,7 +170,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                             printf("1 - Variable \"%s\" has already been declared\n", currentAction->varName);
                         }else{
                             if(currentAction->calc>=0){
-                                storeVar(variables, newVar(currentAction->varName, "int", runCalcul(getCalc(calculs, currentAction->calc), variables)));
+                                Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
+                                changeName(gettedVar, currentAction->varName, "int");
+                                storeVar(variables, gettedVar);
                             }
                         }
                         i = i+1;
@@ -187,7 +195,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
                 if(isVarExistInContext(variables, currentAction->varName)){
                     printf("2 - Variable \"%s\" has already been declared\n", currentAction->varName);
                 }else{
-                    storeVar(variables, newVar(currentAction->varName, "int", removeLastValue(myStack)));
+                    Variable storedValue = lastValue(myStack);
+                    changeName(storedValue, currentAction->varName, "int");
+                    storeVar(variables, storedValue);
                 }
                 i = i+1;
             }
@@ -195,7 +205,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
         else if(currentAction->type==2){/* print calcul */
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
-                printf("%d\n", runCalcul(getCalc(calculs, currentAction->calc), variables));
+                Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
+                printf("%d\n", gettedVar->value);
+                freeVar(gettedVar);
                 i = i+1;
             }else{
                 if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
@@ -209,7 +221,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
         }else if(currentAction->type==3){/* if function */
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
-                if(runCalcul(getCalc(calculs, currentAction->calc), variables)){
+                if(runCalcul(getCalc(calculs, currentAction->calc), variables)->value){
                     i = i+2;
                 }else{
                     i = i+1;
@@ -231,9 +243,10 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack mySta
             if(currentAction->calc>=0){
                 char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
                 if(strcmp(response, "")==0){
-                    int returnValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
+                    Variable returnValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
                     i = freeContext(variables);
-                    storeVar(variables, newVar("return", "return", returnValue));
+                    changeName(returnValue, "return", "return");
+                    storeVar(variables, returnValue);
                     
                 }else{
                     if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){

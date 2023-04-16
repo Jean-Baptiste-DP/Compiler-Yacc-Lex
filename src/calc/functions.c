@@ -15,19 +15,20 @@
 FctParameters addParameter(int calc, FctParameters nextPara){
     FctParameters newPara = malloc(sizeof(FctParameters));
     newPara->calc = calc;
-    newPara->value = newStack();
+    newPara->value = newData();
     newPara->nextParameter = nextPara;
 }
 
 void freeParameter(FctParameters parameter){
     if(parameter){
         freeParameter(parameter->nextParameter);
-        freeStack(parameter->value);
+        freeData(parameter->value);
         free(parameter);
     }
 }
 
-ParaResponse getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, Stack myStack, int waitingDepth){
+ParaResponse getCallBack(FctParameters parameter, Data myData, CalcStorage myCalculs, Data myStack, int waitingDepth){
+    // check if next parameters needs callback
     if(parameter->nextParameter && (waitingDepth>=2 || waitingDepth<0)){
         ParaResponse response = getCallBack(parameter->nextParameter, myData, myCalculs, myStack, waitingDepth-1);
         if(isFctInPara(response)){
@@ -36,19 +37,20 @@ ParaResponse getCallBack(FctParameters parameter, Data myData, CalcStorage myCal
         }
         freeResp(response);
     }
-    
+    // Check if need call function in the parameter
     ParaResponse response = initResp(getCalcCallBack(getCalc(myCalculs, parameter->calc), myData, myCalculs, myStack));
     if(isFctInPara(response)){
         return response;
     }
-    appendInt(parameter->value, runCalcul(getCalc(myCalculs, parameter->calc), myData));
+    // calcul the value of the parameter
+    storeVar(parameter->value, runCalcul(getCalc(myCalculs, parameter->calc), myData));
     return response;
 }
 
-void getParametersValues(FctParameters parameter, Stack myStack){
+void getParametersValues(FctParameters parameter, Data myStack){
     if(parameter){
         getParametersValues(parameter->nextParameter, myStack);
-        appendInt(myStack, removeLastValue(parameter->value));
+        storeVar(myStack, lastValue(parameter->value));
     }
 }
 
@@ -78,13 +80,13 @@ bool isFctInPara(ParaResponse resp){
 
 FctStack initFctStack(){
     FctStack myStacks = malloc(sizeof(FctStack));
-    myStacks->values = newStack();
+    myStacks->values = newData();
     myStacks->waitingResponse = newStack();
     return myStacks;
 }
 
 void freeFctStack(FctStack myFctStack){
-    freeStack(myFctStack->values);
+    freeData(myFctStack->values);
     freeStack(myFctStack->waitingResponse);
     free(myFctStack);
 }
@@ -108,7 +110,8 @@ void freeFctRegistered(FctRegister fct){
     free(fct);
 }
 
-char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Stack myStack){
+char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Data myStack){
+    // check if the calculation has been done
     int waiting;
     if(isVarExist(myData, "return") && !StackisEmpty(fct->stacks->waitingResponse)){
         waiting = removeLastValue(fct->stacks->waitingResponse);
@@ -117,7 +120,7 @@ char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Stack myS
     }
 
     if(waiting==0){
-        appendInt(fct->stacks->values, getVar(myData, "return")->value);
+        storeVar(fct->stacks->values, getVar(myData, "return"));
         deleteVar(myData, "return");
         return "";
     }
@@ -134,7 +137,7 @@ char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Stack myS
     }
     freeResp(resp);
 
-    removeStack(myStack);
+    removeData(myStack);
     getParametersValues(fct->parameters, myStack);
     appendInt(fct->stacks->waitingResponse, 0);
     return fct->name;
@@ -172,7 +175,7 @@ void storeFctCalc(AllCalcFct allFct, FctRegister fct){
     }
 }
 
-char *getCallBackInAll(AllCalcFct allFct, Data myData, CalcStorage myCalc, Stack myStack){
+char *getCallBackInAll(AllCalcFct allFct, Data myData, CalcStorage myCalc, Data myStack){
     int beginning;
     if(isVarExist(myData, "return") && !StackisEmpty(allFct->waitingFunctions)){
         beginning = removeLastValue(allFct->waitingFunctions);

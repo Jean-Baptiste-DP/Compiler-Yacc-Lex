@@ -126,53 +126,71 @@ void freeCalculNb(CalculNb myCalc){
 
 /* Execute Calcul */
 
-int runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
+Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
     if(myCalc->symbole->type==0){
-        return myCalc->symbole->value;
+        return newVar("","int", myCalc->symbole->value);
     }else if (myCalc->symbole->type==1) /* variable */
     {
         if(isVarExist(myData, myCalc->symbole->variable)){
-            return getVar(myData, myCalc->symbole->variable)->value;
+            return getVar(myData, myCalc->symbole->variable);
         }else{
-            return 0;
+            return newVar("", "int", 0);
         }
     }else if(myCalc->symbole->type==2){ /* fct type */
         FctRegister myFct = fct->line[myCalc->symbole->value];
-        return removeLastValue(myFct->stacks->values);
-    }else if(myCalc->symbole->value==0){
-        return runCalculNb(myCalc->leftChild, fct, myData)*runCalculNb(myCalc->rightChild, fct, myData);
+        return lastValue(myFct->stacks->values);
+    }
+
+    if(myCalc->symbole->value==5 || myCalc->symbole->value==6){
+        Variable child = runCalculNb(myCalc->leftChild, fct, myData);
+        
+        if(myCalc->symbole->value==5){
+            child->value = - child->value;
+        }else{
+            child->value = ! child->value;
+        }
+
+        return child;
+    }
+
+    Variable left = runCalculNb(myCalc->leftChild, fct, myData);
+    Variable right = runCalculNb(myCalc->rightChild, fct, myData);
+
+    if(myCalc->symbole->value==0){
+        left->value = left->value*right->value;
     }else if(myCalc->symbole->value==1){
-        return runCalculNb(myCalc->leftChild, fct, myData)/runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value/right->value;
     }else if(myCalc->symbole->value==2){
-        return runCalculNb(myCalc->leftChild, fct, myData)+runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value+right->value;
     }else if(myCalc->symbole->value==3){
-        return runCalculNb(myCalc->leftChild, fct, myData)-runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value-right->value;
     }else if(myCalc->symbole->value==4){
-        return runCalculNb(myCalc->leftChild, fct, myData)%runCalculNb(myCalc->rightChild, fct, myData);
-    }else if(myCalc->symbole->value==5){
-        return -runCalculNb(myCalc->leftChild, fct, myData);
-    }else if(myCalc->symbole->value==6){
-        return !runCalculNb(myCalc->leftChild, fct, myData);
+        left->value = left->value%right->value;
     }else if(myCalc->symbole->value==7){
-        return runCalculNb(myCalc->leftChild, fct, myData)||runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value||right->value;
     }else if(myCalc->symbole->value==8){
-        return runCalculNb(myCalc->leftChild, fct, myData)&&runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value&&right->value;
     }else if(myCalc->symbole->value==9){
-        return runCalculNb(myCalc->leftChild, fct, myData)==runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value==right->value;
     }else if(myCalc->symbole->value==10){
-        return runCalculNb(myCalc->leftChild, fct, myData)!=runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value!=right->value;
     }else if(myCalc->symbole->value==11){
-        return runCalculNb(myCalc->leftChild, fct, myData)>=runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value>=right->value;
     }else if(myCalc->symbole->value==12){
-        return runCalculNb(myCalc->leftChild, fct, myData)<=runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value<=right->value;
     }else if(myCalc->symbole->value==13){
-        return runCalculNb(myCalc->leftChild, fct, myData)>runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value>right->value;
     }else if(myCalc->symbole->value==14){
-        return runCalculNb(myCalc->leftChild, fct, myData)<runCalculNb(myCalc->rightChild, fct, myData);
+        left->value = left->value<right->value;
     }else{
         printf("Calc don't match possibilities");
-        return 0;
+        freeVar(left);
+        freeVar(right);
+        return newVar("", "int", 0);
     }
+    
+    freeVar(right);
+    return left;
 }
 
 void incrementFctIndex(CalculNb tree, int num){

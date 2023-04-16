@@ -13,6 +13,13 @@ typedef struct VariableStruct
     int value;
 }*Variable;
 
+/* 
+type = 
+"int" -> entier
+"context" (name = "") -> delimitation de context
+"return" (name = "return") -> function call return
+*/
+
 typedef struct AllVariables
 {
     struct VariableStruct *var;
@@ -27,6 +34,7 @@ typedef struct data{
 
 Variable newVar(char *name, char *type, int value);
 void freeVar(Variable var);
+void changeName(Variable var, char *name, char *type);
 
 /* --- DataStack : Variable storage --- */
 
@@ -52,3 +60,5 @@ void deleteVar(Data variables, char *name);
 void storeVar(Data variables, Variable var);
 void freeData(Data variables);
 int freeContext(Data variables);
+Variable lastValue(Data variables);
+void removeData(Data variables);

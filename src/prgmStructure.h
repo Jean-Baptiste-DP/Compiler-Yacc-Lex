@@ -47,4 +47,4 @@ void displayPrgm(Program myPrgm);
 
 /* --- Run Prgm --- */
 
-void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Stack myStack);
+void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStack);

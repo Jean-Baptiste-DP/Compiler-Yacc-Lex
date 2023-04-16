@@ -12,6 +12,7 @@ int yylex();
 
 Data variables = NULL;
 Stack myStack = NULL;
+Data temporaryStorage = NULL;
 Program myPrgm = NULL;
 CalcStorage myCalc = NULL;
 %}
@@ -145,13 +146,15 @@ void yyerror(char *error)
 int main(){
     variables = newData();
     myStack = newStack();
+    temporaryStorage = newData();
     myPrgm = newPrgm();
     myCalc = newCalcStorage();
     yyparse();
     displayPrgm(myPrgm);
-    runProgram(myPrgm, myCalc, variables, myStack);
+    runProgram(myPrgm, myCalc, variables, temporaryStorage);
     freeProgram(myPrgm);
     freeCalcStorage(myCalc);
     freeData(variables);
+    freeData(temporaryStorage);
     freeStack(myStack);
 }

@@ -9,8 +9,8 @@
 
 Calcul newCalc(CalculNb nb, AllCalcFct fct);
 void freeCalcul(Calcul calc);
-char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage, Stack myStack);
-int runCalcul(Calcul myCalc, Data myData);
+char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage, Data myStack);
+Variable runCalcul(Calcul myCalc, Data myData);
 Calcul ConstCalc(int constante);
 Calcul VarCalc(char *name);
 Calcul FctCalc(char *name, FctParameters parameters);

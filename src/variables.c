@@ -26,6 +26,17 @@ void freeVar(Variable var){
     free(var);
 }
 
+void changeName(Variable var, char *name, char *type){
+    char *myName = malloc(strlen(name)*sizeof(char));
+    char *myType = malloc(strlen(type)*sizeof(char));
+    strcpy(myName, name);
+    strcpy(myType, type);
+    free(var->name);
+    free(var->type);
+    var->name = myName;
+    var->type = myType;
+}
+
 
 /* --- Variable storage sturcture --- */
 
@@ -197,4 +208,17 @@ int freeContext(Data variables){
     int returnPosition = variables->myData->var->value;
     variables->myData = freeOneInStack(variables->myData);
     return returnPosition;
+}
+
+Variable lastValue(Data variables){
+    Variable value = variables->myData->var;
+    DataStack next = variables->myData->next;
+    free(variables->myData);
+    variables->myData = next;
+    return value;
+}
+
+void removeData(Data variables){
+    freeDataStack(variables->myData);
+    variables->myData=NULL;
 }

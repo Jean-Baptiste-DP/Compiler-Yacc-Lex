@@ -14,5 +14,5 @@ CalculNb leafVar(char *varName);
 CalculNb leafFct(int fctPosition);
 CalculNb nodeOperator(int operat, CalculNb lChild, CalculNb rChild);
 void freeCalculNb(CalculNb myCalc);
-int runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData);
+Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData);
 void incrementFctIndex(CalculNb tree, int num);

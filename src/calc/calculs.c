@@ -15,11 +15,11 @@ void freeCalcul(Calcul calc){
     free(calc);
 }
 
-char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage, Stack myStack){
+char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage, Data myStack){
     return getCallBackInAll(myCalc->fct, myData, myCalcStorage, myStack);
 }
 
-int runCalcul(Calcul myCalc, Data myData){
+Variable runCalcul(Calcul myCalc, Data myData){
     return runCalculNb(myCalc->nb, myCalc->fct, myData);
 }
 
