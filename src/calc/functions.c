@@ -50,7 +50,8 @@ ParaResponse getCallBack(FctParameters parameter, Data myData, CalcStorage myCal
 void getParametersValues(FctParameters parameter, Data myStack){
     if(parameter){
         getParametersValues(parameter->nextParameter, myStack);
-        storeVar(myStack, lastValue(parameter->value));
+        Variable value = lastValue(parameter->value);
+        storeVar(myStack, value);
     }
 }
 
@@ -118,25 +119,22 @@ char *getFctCallBack(FctRegister fct, Data myData, CalcStorage myCalc, Data mySt
     }else{
         waiting = -1;
     }
-
     if(waiting==0){
         storeVar(fct->stacks->values, getVar(myData, "return"));
-        deleteVar(myData, "return");
+        /* TODO - remove variable from stack */
+        removeVar(myData, "return");
         return "";
     }
-
     if(!fct->parameters){
         appendInt(fct->stacks->waitingResponse, 0);
         return fct->name;
     }
-
     ParaResponse resp = getCallBack(fct->parameters, myData, myCalc, myStack, waiting);
     if(isFctInPara(resp)){
         appendInt(fct->stacks->waitingResponse, resp->depth);
         return resp->funcName;
     }
     freeResp(resp);
-
     removeData(myStack);
     getParametersValues(fct->parameters, myStack);
     appendInt(fct->stacks->waitingResponse, 0);

@@ -114,18 +114,36 @@ void printAllVariables(DataStack variables){
 Variable getVarStack(DataStack variables, char *name){
     if(isEmptyStack(variables)){
         printf("Variable %s doesn't exist\n", name);
+        /* change 0 to variable, without creating memory for it */
         return 0;
     }else{
         if(strcmp(variables->var->name,name)==0){
-        return variables->var;
-    }else{
-        return getVarStack(variables->next,name);
-    }
+            return variables->var;
+        }else{
+            return getVarStack(variables->next,name);
+        }
     }
 }
 
 Variable getVar(Data variables, char *name){
     return getVarStack(variables->myData, name);
+}
+
+Variable copyVarStack(DataStack variables, char *name){
+    if(isEmptyStack(variables)){
+        printf("Variable %s doesn't exist\n", name);
+        return newVar("", "int", 0);
+    }else{
+        if(strcmp(variables->var->name,name)==0){
+            return newVar(variables->var->name, variables->var->type, variables->var->value);
+        }else{
+            return copyVarStack(variables->next,name);
+        }
+    }
+}
+
+Variable copyVar(Data variables, char *name){
+    return copyVarStack(variables->myData, name);
 }
 
 /* Delete the specific variable */
@@ -146,6 +164,22 @@ DataStack deleteVarStack(DataStack variables, char *name){
 
 void deleteVar(Data variables, char *name){
     variables->myData = deleteVarStack(variables->myData, name);
+}
+
+DataStack removeVarStack(DataStack variables, char *name){
+    if(!isEmptyStack(variables)){
+        if(strcmp(variables->var->name,name)==0){
+            DataStack next=variables->next;
+            return next;
+        }else{
+            variables->next = removeVarStack(variables->next,name);
+            return variables;
+        }
+    }
+}
+
+void removeVar(Data variables, char *name){
+    variables->myData = removeVarStack(variables->myData, name);
 }
 
 /* Add new variable */
@@ -220,5 +254,5 @@ Variable lastValue(Data variables){
 
 void removeData(Data variables){
     freeDataStack(variables->myData);
-    variables->myData=NULL;
+    variables->myData=newDataStack();
 }

@@ -43,11 +43,14 @@ bool isEmptyStack(DataStack variables);
 bool isVarExistStack(DataStack variables, char *name);
 bool isVarExistInContextStack(DataStack variables, char *name);
 Variable getVarStack(DataStack variables, char *name);
+Variable copyVarStack(DataStack variables, char *name);
 DataStack deleteVarStack(DataStack variables, char *name);
+DataStack removeVarStack(DataStack variables, char *name);
 DataStack storeVarStack(DataStack variables, Variable var);
 void freeDataStack(DataStack variables);
 DataStack freeContextStack(DataStack variables);
 DataStack freeOneInStack(DataStack variables);
+void printAllVariables(DataStack variables);
 
 /* --- Data Storage --- */
 
@@ -56,7 +59,9 @@ bool isEmpty(Data variables);
 bool isVarExist(Data variables, char *name);
 bool isVarExistInContext(Data variables, char *name);
 Variable getVar(Data variables, char *name);
+Variable copyVar(Data variables, char *name);
 void deleteVar(Data variables, char *name);
+void removeVar(Data variables, char *name);
 void storeVar(Data variables, Variable var);
 void freeData(Data variables);
 int freeContext(Data variables);

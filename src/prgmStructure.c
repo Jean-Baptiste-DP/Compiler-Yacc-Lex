@@ -8,7 +8,8 @@
 
 #include "prgmStructure.h"
 
-
+// for sleep prgm
+#include <unistd.h>
 
 /* --- Actions --- */
 
@@ -124,6 +125,12 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
     int i = 0;
     Action currentAction = getAction(myPrgm, i);
     while(i<myPrgm->lastElement){
+        // printf("\x1B[32m");
+        // printf("Running line %d - Action %d\n", i, currentAction->type);
+        // printf("\x1B[0m");
+        // printf("\x1B[31m");
+        // printAllVariables(myStack->myData);
+        // printf("\x1B[0m");
         if(currentAction->type==0){ /* assigment */
             if(isEmpty(myStack)){
                 if(currentAction->calc>=0){
@@ -221,11 +228,13 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
         }else if(currentAction->type==3){/* if function */
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
-                if(runCalcul(getCalc(calculs, currentAction->calc), variables)->value){
+                Variable gettedValue= runCalcul(getCalc(calculs, currentAction->calc), variables);
+                if(gettedValue->value){
                     i = i+2;
                 }else{
                     i = i+1;
                 }
+                freeVar(gettedValue);
             }else{
                 if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
                     storeVar(variables, newVar("", "context", i));
@@ -243,6 +252,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             if(currentAction->calc>=0){
                 char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
                 if(strcmp(response, "")==0){
+                    
                     Variable returnValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
                     i = freeContext(variables);
                     changeName(returnValue, "return", "return");

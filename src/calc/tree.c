@@ -132,7 +132,7 @@ Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
     }else if (myCalc->symbole->type==1) /* variable */
     {
         if(isVarExist(myData, myCalc->symbole->variable)){
-            return getVar(myData, myCalc->symbole->variable);
+            return copyVar(myData, myCalc->symbole->variable);
         }else{
             return newVar("", "int", 0);
         }
