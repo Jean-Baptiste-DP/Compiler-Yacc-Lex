@@ -14,7 +14,7 @@ Variable newVar(char *name, char *type, int value){
     Variable var = malloc(sizeof(Variable));
     var->name = myName;
     var->type = myType;
-    var->value = value;
+    var->intValue = value;
     return var;
 }
 
@@ -104,7 +104,7 @@ bool isVarExistInContext(Data variables, char *name){
 
 void printAllVariables(DataStack variables){
     if(!isEmptyStack(variables)){
-        printf("Type %s, name %s, value %d\n",variables->var->type, variables->var->name, variables->var->value);
+        printf("Type %s, name %s, value %d\n",variables->var->type, variables->var->name, variables->var->intValue);
         printAllVariables(variables->next);
     }
 }
@@ -135,7 +135,7 @@ Variable copyVarStack(DataStack variables, char *name){
         return newVar("", "int", 0);
     }else{
         if(strcmp(variables->var->name,name)==0){
-            return newVar(variables->var->name, variables->var->type, variables->var->value);
+            return newVar(variables->var->name, variables->var->type, variables->var->intValue);
         }else{
             return copyVarStack(variables->next,name);
         }
@@ -239,7 +239,7 @@ DataStack freeOneInStack(DataStack variables){
 
 int freeContext(Data variables){
     variables->myData = freeContextStack(variables->myData);
-    int returnPosition = variables->myData->var->value;
+    int returnPosition = variables->myData->var->intValue;
     variables->myData = freeOneInStack(variables->myData);
     return returnPosition;
 }

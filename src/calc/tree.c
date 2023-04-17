@@ -145,9 +145,9 @@ Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
         Variable child = runCalculNb(myCalc->leftChild, fct, myData);
         
         if(myCalc->symbole->value==5){
-            child->value = - child->value;
+            child->intValue = - child->intValue;
         }else{
-            child->value = ! child->value;
+            child->intValue = ! child->intValue;
         }
 
         return child;
@@ -157,31 +157,31 @@ Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
     Variable right = runCalculNb(myCalc->rightChild, fct, myData);
 
     if(myCalc->symbole->value==0){
-        left->value = left->value*right->value;
+        left->intValue = left->intValue*right->intValue;
     }else if(myCalc->symbole->value==1){
-        left->value = left->value/right->value;
+        left->intValue = left->intValue/right->intValue;
     }else if(myCalc->symbole->value==2){
-        left->value = left->value+right->value;
+        left->intValue = left->intValue+right->intValue;
     }else if(myCalc->symbole->value==3){
-        left->value = left->value-right->value;
+        left->intValue = left->intValue-right->intValue;
     }else if(myCalc->symbole->value==4){
-        left->value = left->value%right->value;
+        left->intValue = left->intValue%right->intValue;
     }else if(myCalc->symbole->value==7){
-        left->value = left->value||right->value;
+        left->intValue = left->intValue||right->intValue;
     }else if(myCalc->symbole->value==8){
-        left->value = left->value&&right->value;
+        left->intValue = left->intValue&&right->intValue;
     }else if(myCalc->symbole->value==9){
-        left->value = left->value==right->value;
+        left->intValue = left->intValue==right->intValue;
     }else if(myCalc->symbole->value==10){
-        left->value = left->value!=right->value;
+        left->intValue = left->intValue!=right->intValue;
     }else if(myCalc->symbole->value==11){
-        left->value = left->value>=right->value;
+        left->intValue = left->intValue>=right->intValue;
     }else if(myCalc->symbole->value==12){
-        left->value = left->value<=right->value;
+        left->intValue = left->intValue<=right->intValue;
     }else if(myCalc->symbole->value==13){
-        left->value = left->value>right->value;
+        left->intValue = left->intValue>right->intValue;
     }else if(myCalc->symbole->value==14){
-        left->value = left->value<right->value;
+        left->intValue = left->intValue<right->intValue;
     }else{
         printf("Calc don't match possibilities");
         freeVar(left);

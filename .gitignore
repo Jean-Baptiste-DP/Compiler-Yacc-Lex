@@ -1,8 +1,14 @@
+# executable files
 compiler
+a.out
+
+# yacc and lex files
 *.tab.*
 lex.yy.c
-a.out
+
+# other
 notes.md
 .vscode
 *.bash
 testCalc.txt
+examples/output*.txt

@@ -10,7 +10,7 @@ typedef struct VariableStruct
 {
     char *name;
     char *type;
-    int value;
+    int intValue;
 }*Variable;
 
 /* 

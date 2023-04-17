@@ -138,7 +138,14 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     if(strcmp(response, "")==0){
                         if(isVarExist(variables, currentAction->varName)){
                             Variable gettedValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                            getVar(variables, currentAction->varName)->value = gettedValue->value;
+                            Variable previousVar = getVar(variables, currentAction->varName);
+                            if(strcmp(gettedValue->type, previousVar->type)==0){
+                                if(strcmp(previousVar->type, "int")==0){
+                                    previousVar->intValue = gettedValue->intValue;
+                                }
+                            }else{
+                                printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
+                            }
                             freeVar(gettedValue);
                         }else{
                             printf("Variable \"%s\" hasn't been declared\nlet %s; to declare it\n", currentAction->varName, currentAction->varName);
@@ -147,7 +154,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     }else{
                         if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
                             storeVar(variables, newVar("", "context", i));
-                            i = getVar(variables, response)->value;
+                            i = getVar(variables, response)->intValue;
                         }else{
                             printf("The function %s doesn't exist\n", response);
                             i = i+1;
@@ -158,9 +165,16 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 }
             }else{
                 if(isVarExist(variables, currentAction->varName)){
-                    Variable storedValue = lastValue(myStack);
-                    getVar(variables, currentAction->varName)->value = storedValue->value;
-                    freeVar(storedValue);
+                    Variable gettedValue = lastValue(myStack);
+                    Variable previousVar = getVar(variables, currentAction->varName);
+                    if(strcmp(gettedValue->type, previousVar->type)==0){
+                        if(strcmp(previousVar->type, "int")==0){
+                            previousVar->intValue = gettedValue->intValue;
+                        }
+                    }else{
+                        printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
+                    }
+                    freeVar(gettedValue);
                 }else{
                     Variable storedValue = lastValue(myStack);
                     changeName(storedValue, currentAction->varName, "int");
@@ -174,7 +188,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
                     if(strcmp(response, "")==0){
                         if(isVarExistInContext(variables, currentAction->varName)){
-                            printf("1 - Variable \"%s\" has already been declared\n", currentAction->varName);
+                            printf("Variable \"%s\" has already been declared\n", currentAction->varName);
                         }else{
                             if(currentAction->calc>=0){
                                 Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
@@ -186,7 +200,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     }else{
                         if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
                             storeVar(variables, newVar("", "context", i));
-                            i = getVar(variables, response)->value;
+                            i = getVar(variables, response)->intValue;
                         }else{
                             printf("The function %s doesn't exist\n", response);
                             i = i+1;
@@ -200,7 +214,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 }
             }else{
                 if(isVarExistInContext(variables, currentAction->varName)){
-                    printf("2 - Variable \"%s\" has already been declared\n", currentAction->varName);
+                    printf("Variable \"%s\" has already been declared\n", currentAction->varName);
                 }else{
                     Variable storedValue = lastValue(myStack);
                     changeName(storedValue, currentAction->varName, "int");
@@ -213,13 +227,15 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                printf("%d\n", gettedVar->value);
+                if(strcmp(gettedVar->type, "int")==0){
+                    printf("%d\n", gettedVar->intValue);
+                }
                 freeVar(gettedVar);
                 i = i+1;
             }else{
                 if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
                     storeVar(variables, newVar("", "context", i));
-                    i = getVar(variables, response)->value;
+                    i = getVar(variables, response)->intValue;
                 }else{
                     printf("The function %s doesn't exist\n", response);
                     i = i+1;
@@ -229,7 +245,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
             if(strcmp(response, "")==0){
                 Variable gettedValue= runCalcul(getCalc(calculs, currentAction->calc), variables);
-                if(gettedValue->value){
+                if(strcmp(gettedValue->type, "int")==0 && gettedValue->intValue){
                     i = i+2;
                 }else{
                     i = i+1;
@@ -238,7 +254,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             }else{
                 if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
                     storeVar(variables, newVar("", "context", i));
-                    i = getVar(variables, response)->value;
+                    i = getVar(variables, response)->intValue;
                 }else{
                     printf("The function %s doesn't exist\n", response);
                     i = i+1;
@@ -255,13 +271,13 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     
                     Variable returnValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
                     i = freeContext(variables);
-                    changeName(returnValue, "return", "return");
+                    changeName(returnValue, "return", returnValue->type);
                     storeVar(variables, returnValue);
                     
                 }else{
                     if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
                         storeVar(variables, newVar("", "context", i));
-                        i = getVar(variables, response)->value;
+                        i = getVar(variables, response)->intValue;
                     }else{
                         printf("The function %s doesn't exist\n", response);
                         i = i+1;
