@@ -4,9 +4,28 @@
 
 #include "variables.h"
 
+/* Type */
+
+VarInfo newVarInfo(char *type, char *name){
+    char *myType = malloc(strlen(type)*sizeof(char));
+    strcpy(myType, type);
+    char *myName = malloc(strlen(name)*sizeof(char));
+    strcpy(myName, name);
+    VarInfo myVar = malloc(sizeof(VarInfo));
+    myVar->type = myType;
+    myVar->name = myName;
+    return myVar;
+}
+
+void freeVarInfo(VarInfo var){
+    free(var->type);
+    free(var->name);
+    free(var);
+}
+
 /* Initiate a variable */
 
-Variable newVar(char *name, char *type, int value){
+Variable newVarInt(char *name, char *type, int value){
     char *myName = malloc(strlen(name)*sizeof(char));
     char *myType = malloc(strlen(type)*sizeof(char));
     strcpy(myName, name);
@@ -15,6 +34,29 @@ Variable newVar(char *name, char *type, int value){
     var->name = myName;
     var->type = myType;
     var->intValue = value;
+    return var;
+}
+
+Variable newVarFloat(char *name, char *type, float value){
+    char *myName = malloc(strlen(name)*sizeof(char));
+    char *myType = malloc(strlen(type)*sizeof(char));
+    strcpy(myName, name);
+    strcpy(myType, type);
+    Variable var = malloc(sizeof(Variable));
+    var->name = myName;
+    var->type = myType;
+    var->floatValue = value;
+    return var;
+}
+
+Variable newVar(char *name, char *type){
+    char *myName = malloc(strlen(name)*sizeof(char));
+    char *myType = malloc(strlen(type)*sizeof(char));
+    strcpy(myName, name);
+    strcpy(myType, type);
+    Variable var = malloc(sizeof(Variable));
+    var->name = myName;
+    var->type = myType;
     return var;
 }
 
@@ -132,10 +174,14 @@ Variable getVar(Data variables, char *name){
 Variable copyVarStack(DataStack variables, char *name){
     if(isEmptyStack(variables)){
         printf("Variable %s doesn't exist\n", name);
-        return newVar("", "int", 0);
+        return newVarInt("", "int", 0);
     }else{
         if(strcmp(variables->var->name,name)==0){
-            return newVar(variables->var->name, variables->var->type, variables->var->intValue);
+            if(strcmp(variables->var->type, "int")==0){
+                return newVarInt(variables->var->name, variables->var->type, variables->var->intValue);
+            }else{
+                return newVarFloat(variables->var->name, variables->var->type, variables->var->floatValue);
+            }
         }else{
             return copyVarStack(variables->next,name);
         }

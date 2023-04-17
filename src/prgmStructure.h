@@ -13,7 +13,7 @@
 
 typedef struct action{
     int type;
-    char *varName;
+    VarInfo var;
     int line;
     int calc;
 }*Action;
@@ -27,7 +27,7 @@ typedef struct prgmLine{
 
 /* --- Action of program --- */
 
-Action newAction(int type,char *var,int line,int calc);
+Action newAction(int type,char *var,int line,int calc, char *varType);
 void freeAction(Action act);
 
 /* --- Program Line --- */

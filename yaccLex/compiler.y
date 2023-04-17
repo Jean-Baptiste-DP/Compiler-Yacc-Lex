@@ -40,7 +40,6 @@ CalcStorage myCalc = NULL;
 %nonassoc WHILE
 %nonassoc FUNCT
 %nonassoc RETURN
-%nonassoc LET
 %nonassoc ASSIGN
 %token <varName> VARNAME
 %left AND
@@ -63,16 +62,16 @@ line :          {;}
 | line action   {;}
 ;
 
-action : print '('Calcul')' ';' {storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3)));}
-| IF Condition                  {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2))); gotoFrom(myStack, myPrgm);} endif
-| forLoop                       {;}
-| whileLoop                     {;}
-| function                      {;}
-| RETURN Calcul ';'             {storeAction(myPrgm,newAction(5, "", 0, storeCalcul(myCalc, $2)));}
-| LET VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4))); free($2);}
-| LET VARNAME ';'               {storeAction(myPrgm,newAction(1, $2, 0, -1));free($2);}
-| VARNAME ASSIGN Calcul ';'     {storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3))); free($1);}
-| '{' line '}'                  {;}
+action : print '('Calcul')' ';'     {storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3), ""));}
+| IF Condition                      {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2), "")); gotoFrom(myStack, myPrgm);} endif
+| forLoop                           {;}
+| whileLoop                         {;}
+| function                          {;}
+| RETURN Calcul ';'                 {storeAction(myPrgm,newAction(5, "", 0, storeCalcul(myCalc, $2), ""));}
+| VARNAME VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4), $1)); free($2);free($1);}
+| VARNAME VARNAME ';'               {storeAction(myPrgm,newAction(1, $2, 0, -1, $1));free($2);free($1);}
+| VARNAME ASSIGN Calcul ';'         {storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3), "")); free($1);}
+| '{' line '}'                      {;}
 ;
 
 Calcul : Expression     {$$=$1;}
@@ -109,12 +108,12 @@ action                              {gotoDest(myStack, myPrgm, 0);}
 | action                            {gotoDest(myStack, myPrgm, 0);}
 ;
 
-forLoop : FOR '(' LET VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $4, 0, storeCalcul(myCalc, $6)));}
-Condition ';'                                   {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $9)));gotoFrom(myStack, myPrgm);}
-VARNAME ASSIGN Calcul ')' '{' line '}'          {storeAction(myPrgm,newAction(0, $12, 0, storeCalcul(myCalc, $14)));forEndGoto(myStack, myPrgm, $4);free($4);free($12);}
+forLoop : FOR '(' VARNAME VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $4, 0, storeCalcul(myCalc, $6), $3));}
+Condition ';'                                       {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $9), ""));gotoFrom(myStack, myPrgm);}
+VARNAME ASSIGN Calcul ')' '{' line '}'              {storeAction(myPrgm,newAction(0, $12, 0, storeCalcul(myCalc, $14), ""));forEndGoto(myStack, myPrgm, $4);free($3);free($4);free($12);}
 ;
 
-whileLoop : WHILE Condition     {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2)));gotoFrom(myStack, myPrgm);}
+whileLoop : WHILE Condition     {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2), ""));gotoFrom(myStack, myPrgm);}
 '{' line '}'                    {whileEndGoto(myStack, myPrgm);}
 ;
 
@@ -124,14 +123,14 @@ callParameter :                 {$$=NULL;}
 ;
 
 defparameters :                                 {;}
-| defparameters ',' LET VARNAME ASSIGN Calcul   {storeAction(myPrgm,newAction(1, $4, 0, storeCalcul(myCalc, $6))); free($4);}
-| defparameters ',' LET VARNAME                 {storeAction(myPrgm,newAction(1, $4, 0, -1));free($4);;}
-| LET VARNAME ASSIGN Calcul                     {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4))); free($2);}
-| LET VARNAME                                   {storeAction(myPrgm,newAction(1, $2, 0, -1));free($2);}
+| defparameters ',' VARNAME VARNAME ASSIGN Calcul   {storeAction(myPrgm,newAction(1, $4, 0, storeCalcul(myCalc, $6), $3));free($3);free($4);}
+| defparameters ',' VARNAME VARNAME                 {storeAction(myPrgm,newAction(1, $4, 0, -1, $3));free($4);free($3);}
+| VARNAME VARNAME ASSIGN Calcul                     {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4), $1)); free($2);free($1);}
+| VARNAME VARNAME                                   {storeAction(myPrgm,newAction(1, $2, 0, -1, $1));free($2);free($1);}
 ;
 
-function : FUNCT VARNAME                   {storeVar(variables, newVar($2, "function", gotoFrom(myStack, myPrgm)+1)); free($2);}
-'(' defparameters ')' '{' line '}'         {storeAction(myPrgm,newAction(5, "", 0, -1));gotoDest(myStack, myPrgm, 0);}
+function : FUNCT VARNAME                   {storeVar(variables, newVarInt($2, "function", gotoFrom(myStack, myPrgm)+1)); free($2);}
+'(' defparameters ')' '{' line '}'         {storeAction(myPrgm,newAction(5, "", 0, -1, ""));gotoDest(myStack, myPrgm, 0);}
 ;
 
 %%

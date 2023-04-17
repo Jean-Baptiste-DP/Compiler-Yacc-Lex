@@ -1,4 +1,4 @@
-function i_parmis_j(let i, let j){
+function i_parmis_j(int i, int j){
     if(i==0 || i==j){
         return 1;
     }
@@ -9,7 +9,7 @@ function i_parmis_j(let i, let j){
 
 print(i_parmis_j(3,5));
 
-function addition(let first, let second){
+function addition(int first, int second){
     return first + second;
 }
 

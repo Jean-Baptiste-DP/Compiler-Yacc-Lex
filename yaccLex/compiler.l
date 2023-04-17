@@ -23,7 +23,6 @@
 "function"      {return FUNCT;}
 "return"        {return RETURN;}
 "print"		    {return print;}
-"let"           {return LET;}
 "="             {return ASSIGN;}
 [0-9]+          {yylval.num = atoi(yytext); return NUMBER;}
 [a-zA-Z][a-zA-Z0-9_]*   {

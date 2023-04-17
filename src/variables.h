@@ -6,17 +6,25 @@
 #endif
 #endif
 
+typedef struct varInfo
+{
+    char *type;
+    char *name;
+}*VarInfo;
+
 typedef struct VariableStruct
 {
     char *name;
     char *type;
     int intValue;
+    float floatValue;
 }*Variable;
 
 /* 
 type = 
-"int" -> entier
-"context" (name = "") -> delimitation de context
+"int" -> integer
+"float" -> float value
+"context" (name = "") -> context delimitation
 "return" (name = "return") -> function call return
 */
 
@@ -30,9 +38,16 @@ typedef struct data{
     DataStack myData;
 }*Data;
 
+/* --- Type --- */
+
+VarInfo newVarInfo(char *type, char *name);
+void freeVarInfo(VarInfo var);
+
 /* --- Variables --- */
 
-Variable newVar(char *name, char *type, int value);
+Variable newVarInt(char *name, char *type, int value);
+Variable newVarFloat(char *name, char *type, float value);
+Variable newVar(char *name, char *type);
 void freeVar(Variable var);
 void changeName(Variable var, char *name, char *type);
 

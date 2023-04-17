@@ -1,5 +1,5 @@
-let j;
-for(let i = 0; i<10 ; i = i+1){
+int j;
+for(int i = 0; i<10 ; i = i+1){
     j = 0;
     while(j<i){
         j = j+1;

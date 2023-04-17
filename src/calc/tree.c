@@ -128,13 +128,15 @@ void freeCalculNb(CalculNb myCalc){
 
 Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
     if(myCalc->symbole->type==0){
-        return newVar("","int", myCalc->symbole->value);
+        /* TODO check type */
+        return newVarInt("","int", myCalc->symbole->value);
     }else if (myCalc->symbole->type==1) /* variable */
     {
         if(isVarExist(myData, myCalc->symbole->variable)){
             return copyVar(myData, myCalc->symbole->variable);
         }else{
-            return newVar("", "int", 0);
+            printf("Variable %s doesn't exist\n", myCalc->symbole->variable);
+            exit(1);
         }
     }else if(myCalc->symbole->type==2){ /* fct type */
         FctRegister myFct = fct->line[myCalc->symbole->value];
@@ -186,7 +188,8 @@ Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
         printf("Calc don't match possibilities");
         freeVar(left);
         freeVar(right);
-        return newVar("", "int", 0);
+        printf("Impossible symbole value : %d\n", myCalc->symbole->value);
+        exit(1);
     }
     
     freeVar(right);
