@@ -23,10 +23,12 @@ CalcStorage myCalc = NULL;
     struct calcul *calc;
     char *varName;
     struct fctParameters *param;
+    float floatVal;
 }
 
 %start line
 %token <num> NUMBER
+%token <floatVal> FLOAT
 %token <boolean> TRUE FALSE
 
 %type <calc> Condition
@@ -84,7 +86,8 @@ Expression:Expression'*'Expression  {$$=OpeCalc(0,$1,$3);}
 |Expression'%'Expression            {$$=OpeCalc(4,$1,$3);}
 |'('Expression')'                   {$$=$2;}
 |'-' Expression %prec UMINUS        {$$=OpeCalc(5,$2,newCalc(NULL, noFctinCalc()));}
-| NUMBER                            {$$=ConstCalc($1);}
+| NUMBER                            {$$=ConstCalcInt($1);}
+| FLOAT                             {$$=ConstCalcFloat($1);}
 | VARNAME '(' callParameter ')'     {$$=FctCalc($1, $3); free($1);}
 | VARNAME                           {$$=VarCalc($1);free($1);}
 ;
@@ -93,8 +96,8 @@ Condition : NOT Condition               {$$=OpeCalc(6,$2,newCalc(NULL, noFctinCa
 | Condition OR Condition                {$$=OpeCalc(7,$1,$3);}
 | Condition AND Condition               {$$=OpeCalc(8,$1,$3);}
 | '('Condition')'                       {$$ = $2;}
-| TRUE                                  {$$ = ConstCalc(true);}
-| FALSE                                 {$$ = ConstCalc(false);}
+| TRUE                                  {$$ = ConstCalcInt(true);}
+| FALSE                                 {$$ = ConstCalcInt(false);}
 | Expression EQ Expression              {$$ = OpeCalc(9,$1,$3);}
 | Expression NEQ Expression             {$$ = OpeCalc(10,$1,$3);}
 | Expression GEQ Expression             {$$ = OpeCalc(11,$1,$3);}
@@ -138,7 +141,7 @@ function : FUNCT VARNAME                   {storeVar(variables, newVarInt($2, "f
 void yyerror(char *error)
 {
     printf("\nEntered arithmetic expression is Invalid\n");
-    printf("Erreur : %s\n\n", error);
+    printf("Error : %s\n\n", error);
     flag=1;
 }
 

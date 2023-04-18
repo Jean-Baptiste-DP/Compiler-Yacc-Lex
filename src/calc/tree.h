@@ -10,6 +10,7 @@
 /* --- Calcul Tree --- */
 
 CalculNb leafConstInt(int value);
+CalculNb leafConstFloat(float value);
 CalculNb leafVar(char *varName);
 CalculNb leafFct(int fctPosition);
 CalculNb nodeOperator(int operat, CalculNb lChild, CalculNb rChild);

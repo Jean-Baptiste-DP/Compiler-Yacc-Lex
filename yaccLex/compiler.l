@@ -24,6 +24,7 @@
 "return"        {return RETURN;}
 "print"		    {return print;}
 "="             {return ASSIGN;}
+[0-9]+\.[0-9]*   {yylval.floatVal = atof(yytext); return FLOAT;}
 [0-9]+          {yylval.num = atoi(yytext); return NUMBER;}
 [a-zA-Z][a-zA-Z0-9_]*   {
                             char *myvar = malloc(strlen(yytext)*sizeof(char));

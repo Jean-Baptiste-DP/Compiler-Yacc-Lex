@@ -69,6 +69,16 @@ CalculNb leafConstInt(int value){
     return leaf;
 }
 
+CalculNb leafConstFloat(float value){
+    CalculNb leaf = malloc(sizeof(CalculNb));
+    Variable sym = newVarFloat("", "float", value);
+    leaf->symbole = sym;
+    leaf->leftChild=NULL;
+    leaf->rightChild=NULL;
+    
+    return leaf;
+}
+
 CalculNb leafVar(char *varName){
 
     CalculNb leaf = malloc(sizeof(CalculNb));

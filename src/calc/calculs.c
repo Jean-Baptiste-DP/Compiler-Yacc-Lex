@@ -23,8 +23,12 @@ Variable runCalcul(Calcul myCalc, Data myData){
     return runCalculNb(myCalc->nb, myCalc->fct, myData);
 }
 
-Calcul ConstCalc(int constante){
+Calcul ConstCalcInt(int constante){
     return newCalc(leafConstInt(constante), noFctinCalc());
+}
+
+Calcul ConstCalcFloat(float constante){
+    return newCalc(leafConstFloat(constante), noFctinCalc());
 }
 
 Calcul VarCalc(char *name){

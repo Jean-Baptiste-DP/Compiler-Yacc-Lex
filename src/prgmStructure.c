@@ -66,7 +66,7 @@ Action getAction(Program myPrgm, int index){
         return myPrgm->line[index];
     }else{
         printf("Index out of bound\n");
-        return 0;
+        exit(1);
     }
 }
 
@@ -126,6 +126,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
         // printf("\x1B[32m");
         // printf("Running line %d - Action %d\n", i, currentAction->type);
         // printf("\x1B[0m");
+        // sleep(1);
         // printf("\x1B[31m");
         // printAllVariables(myStack->myData);
         // printf("\x1B[0m");
@@ -236,6 +237,8 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
                 if(strcmp(gettedVar->type, "int")==0){
                     printf("%d\n", gettedVar->intValue);
+                }else if(strcmp(gettedVar->type, "float")==0){
+                    printf("%f\n", gettedVar->floatValue);
                 }
                 freeVar(gettedVar);
                 i = i+1;
@@ -270,6 +273,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
         }else if(currentAction->type==4){/* goto line */
             if(currentAction->line>=0){
                 i = currentAction->line;
+            }else{
+                printf("Wrong position in Goto\n");
+                exit(1);
             }
         }else if(currentAction->type==5){ /* exit fct */
             if(currentAction->calc>=0){
