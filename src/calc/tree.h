@@ -4,12 +4,12 @@
 
 /* --- Calcul Symbole --- */
 
-Symbole newSymbole(int type, int val, char *var);
-Symbole freeSymbole(Symbole mysym);
+// Symbole newSymbole(int type, int val, char *var);
+// Symbole freeSymbole(Symbole mysym);
 
 /* --- Calcul Tree --- */
 
-CalculNb leafConst(int value);
+CalculNb leafConstInt(int value);
 CalculNb leafVar(char *varName);
 CalculNb leafFct(int fctPosition);
 CalculNb nodeOperator(int operat, CalculNb lChild, CalculNb rChild);

@@ -24,7 +24,7 @@ Variable runCalcul(Calcul myCalc, Data myData){
 }
 
 Calcul ConstCalc(int constante){
-    return newCalc(leafConst(constante), noFctinCalc());
+    return newCalc(leafConstInt(constante), noFctinCalc());
 }
 
 Calcul VarCalc(char *name){
@@ -99,7 +99,7 @@ Calcul getCalc(CalcStorage storage, int index){
         return storage->line[index];
     }else{
         printf("Index out of bound\n");
-        return newCalc(leafConst(0), noFctinCalc());
+        return newCalc(leafConstInt(0), noFctinCalc());
     }
 }
 

@@ -60,6 +60,14 @@ Variable newVar(char *name, char *type){
     return var;
 }
 
+Variable duplicateVar(Variable var){
+    if(strcmp(var->type, "int")==0){
+        return newVarInt(var->name, var->type, var->intValue);
+    }else if(strcmp(var->type, "float")==0){
+        return newVarFloat(var->name, var->type, var->floatValue);
+    }
+}
+
 /* Delete a variable */
 
 void freeVar(Variable var){
@@ -179,7 +187,7 @@ Variable copyVarStack(DataStack variables, char *name){
         if(strcmp(variables->var->name,name)==0){
             if(strcmp(variables->var->type, "int")==0){
                 return newVarInt(variables->var->name, variables->var->type, variables->var->intValue);
-            }else{
+            }else if(strcmp(variables->var->type, "float")==0){
                 return newVarFloat(variables->var->name, variables->var->type, variables->var->floatValue);
             }
         }else{

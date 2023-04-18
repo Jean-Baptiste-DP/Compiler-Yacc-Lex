@@ -48,6 +48,7 @@ void freeVarInfo(VarInfo var);
 Variable newVarInt(char *name, char *type, int value);
 Variable newVarFloat(char *name, char *type, float value);
 Variable newVar(char *name, char *type);
+Variable duplicateVar(Variable var);
 void freeVar(Variable var);
 void changeName(Variable var, char *name, char *type);
 

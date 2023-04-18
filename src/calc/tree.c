@@ -10,20 +10,20 @@
 
 /* --- Calcul symbole --- */
 
-Symbole newSymbole(int type, int val, char *var){
-    Symbole initSymb = malloc(sizeof(Symbole));
-    char *myvar = malloc(strlen(var));
-    strcpy(myvar, var);
-    initSymb->variable = myvar;
-    initSymb->value = val;
-    initSymb->type = type;
-    return initSymb;
-}
+// Symbole newSymbole(int type, int val, char *var){
+//     Symbole initSymb = malloc(sizeof(Symbole));
+//     char *myvar = malloc(strlen(var));
+//     strcpy(myvar, var);
+//     initSymb->variable = myvar;
+//     initSymb->value = val;
+//     initSymb->type = type;
+//     return initSymb;
+// }
 
-Symbole freeSymbole(Symbole mysym){
-    free(mysym->variable);
-    free(mysym);
-}
+// Symbole freeSymbole(Symbole mysym){
+//     free(mysym->variable);
+//     free(mysym);
+// }
 
 /* --- Calcul structure --- */
 
@@ -59,10 +59,9 @@ type = "ope" = 3
 
 /* Init constant value */
 
-CalculNb leafConst(int value){
-
+CalculNb leafConstInt(int value){
     CalculNb leaf = malloc(sizeof(CalculNb));
-    Symbole sym = newSymbole(0, value, "");
+    Variable sym = newVarInt("", "int", value);
     leaf->symbole = sym;
     leaf->leftChild=NULL;
     leaf->rightChild=NULL;
@@ -73,7 +72,7 @@ CalculNb leafConst(int value){
 CalculNb leafVar(char *varName){
 
     CalculNb leaf = malloc(sizeof(CalculNb));
-    Symbole sym = newSymbole(1, 0, varName);
+    Variable sym = newVar(varName, "calcTreeVar");
     leaf->symbole = sym;
     leaf->leftChild=NULL;
     leaf->rightChild=NULL;
@@ -84,7 +83,7 @@ CalculNb leafVar(char *varName){
 CalculNb leafFct(int fctPosition){
 
     CalculNb leaf = malloc(sizeof(CalculNb));
-    Symbole sym = newSymbole(2, fctPosition, "");
+    Variable sym = newVarInt("", "calcTreeFct", fctPosition);
     leaf->symbole=sym;
     leaf->leftChild=NULL;
     leaf->rightChild=NULL;
@@ -97,7 +96,7 @@ CalculNb leafFct(int fctPosition){
 CalculNb nodeOperator(int operat, CalculNb lChild, CalculNb rChild){
 
     CalculNb node = malloc(sizeof(CalculNb));
-    Symbole sym = newSymbole(3, operat, "");
+    Variable sym = newVarInt("", "calcTreeCalc", operat);
     node->symbole = sym;
     node->leftChild=lChild;
     node->rightChild=rChild;
@@ -108,98 +107,101 @@ CalculNb nodeOperator(int operat, CalculNb lChild, CalculNb rChild){
 /* Delete Calcul */
 
 void freeCalculNb(CalculNb myCalc){
-    if(myCalc->symbole->type==3){
+    if(strcmp(myCalc->symbole->type, "calcTreeCalc")==0){
         freeCalculNb(myCalc->leftChild);
-        if(myCalc->symbole->value!=5 && myCalc->symbole->value!=6){
+        if(myCalc->symbole->intValue!=5 && myCalc->symbole->intValue!=6){
             freeCalculNb(myCalc->rightChild);
         }
-        freeSymbole(myCalc->symbole);
+        freeVar(myCalc->symbole);
         free(myCalc);
-    }else if (myCalc->symbole->type==0 || myCalc->symbole->type==1 || myCalc->symbole->type==2)
+    }else
     {
-        freeSymbole(myCalc->symbole);
+        freeVar(myCalc->symbole);
         free(myCalc);
-    }else{
-        printf("Empty Calc, type : %d\n", myCalc->symbole->type);
     }
 }
 
 /* Execute Calcul */
 
 Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
-    if(myCalc->symbole->type==0){
-        /* TODO check type */
-        return newVarInt("","int", myCalc->symbole->value);
-    }else if (myCalc->symbole->type==1) /* variable */
+    
+    if (strcmp(myCalc->symbole->type, "calcTreeVar")==0) /* variable */
     {
-        if(isVarExist(myData, myCalc->symbole->variable)){
-            return copyVar(myData, myCalc->symbole->variable);
+        if(isVarExist(myData, myCalc->symbole->name)){
+            return copyVar(myData, myCalc->symbole->name);
         }else{
-            printf("Variable %s doesn't exist\n", myCalc->symbole->variable);
+            printf("Variable %s doesn't exist\n", myCalc->symbole->name);
             exit(1);
         }
-    }else if(myCalc->symbole->type==2){ /* fct type */
-        FctRegister myFct = fct->line[myCalc->symbole->value];
+    }else if(strcmp(myCalc->symbole->type, "calcTreeFct")==0){ /* fct type */
+        FctRegister myFct = fct->line[myCalc->symbole->intValue];
         return lastValue(myFct->stacks->values);
-    }
+    }else if(strcmp(myCalc->symbole->type, "calcTreeCalc")==0){
+        if(myCalc->symbole->intValue==5 || myCalc->symbole->intValue==6){
+            Variable child = runCalculNb(myCalc->leftChild, fct, myData);
+            
+            if(myCalc->symbole->intValue==5){
+                child->intValue = - child->intValue;
+            }else{
+                child->intValue = ! child->intValue;
+            }
 
-    if(myCalc->symbole->value==5 || myCalc->symbole->value==6){
-        Variable child = runCalculNb(myCalc->leftChild, fct, myData);
-        
-        if(myCalc->symbole->value==5){
-            child->intValue = - child->intValue;
-        }else{
-            child->intValue = ! child->intValue;
+            return child;
         }
 
-        return child;
-    }
+        /* TODO check if left type == right type */
+        /* Send calculs to differents types */
 
-    Variable left = runCalculNb(myCalc->leftChild, fct, myData);
-    Variable right = runCalculNb(myCalc->rightChild, fct, myData);
+        Variable left = runCalculNb(myCalc->leftChild, fct, myData);
+        Variable right = runCalculNb(myCalc->rightChild, fct, myData);
 
-    if(myCalc->symbole->value==0){
-        left->intValue = left->intValue*right->intValue;
-    }else if(myCalc->symbole->value==1){
-        left->intValue = left->intValue/right->intValue;
-    }else if(myCalc->symbole->value==2){
-        left->intValue = left->intValue+right->intValue;
-    }else if(myCalc->symbole->value==3){
-        left->intValue = left->intValue-right->intValue;
-    }else if(myCalc->symbole->value==4){
-        left->intValue = left->intValue%right->intValue;
-    }else if(myCalc->symbole->value==7){
-        left->intValue = left->intValue||right->intValue;
-    }else if(myCalc->symbole->value==8){
-        left->intValue = left->intValue&&right->intValue;
-    }else if(myCalc->symbole->value==9){
-        left->intValue = left->intValue==right->intValue;
-    }else if(myCalc->symbole->value==10){
-        left->intValue = left->intValue!=right->intValue;
-    }else if(myCalc->symbole->value==11){
-        left->intValue = left->intValue>=right->intValue;
-    }else if(myCalc->symbole->value==12){
-        left->intValue = left->intValue<=right->intValue;
-    }else if(myCalc->symbole->value==13){
-        left->intValue = left->intValue>right->intValue;
-    }else if(myCalc->symbole->value==14){
-        left->intValue = left->intValue<right->intValue;
-    }else{
-        printf("Calc don't match possibilities");
-        freeVar(left);
+        if(myCalc->symbole->intValue==0){
+            left->intValue = left->intValue*right->intValue;
+        }else if(myCalc->symbole->intValue==1){
+            left->intValue = left->intValue/right->intValue;
+        }else if(myCalc->symbole->intValue==2){
+            left->intValue = left->intValue+right->intValue;
+        }else if(myCalc->symbole->intValue==3){
+            left->intValue = left->intValue-right->intValue;
+        }else if(myCalc->symbole->intValue==4){
+            left->intValue = left->intValue%right->intValue;
+        }else if(myCalc->symbole->intValue==7){
+            left->intValue = left->intValue||right->intValue;
+        }else if(myCalc->symbole->intValue==8){
+            left->intValue = left->intValue&&right->intValue;
+        }else if(myCalc->symbole->intValue==9){
+            left->intValue = left->intValue==right->intValue;
+        }else if(myCalc->symbole->intValue==10){
+            left->intValue = left->intValue!=right->intValue;
+        }else if(myCalc->symbole->intValue==11){
+            left->intValue = left->intValue>=right->intValue;
+        }else if(myCalc->symbole->intValue==12){
+            left->intValue = left->intValue<=right->intValue;
+        }else if(myCalc->symbole->intValue==13){
+            left->intValue = left->intValue>right->intValue;
+        }else if(myCalc->symbole->intValue==14){
+            left->intValue = left->intValue<right->intValue;
+        }else{
+            printf("Calc don't match possibilities");
+            freeVar(left);
+            freeVar(right);
+            printf("Impossible symbole value : %d\n", myCalc->symbole->intValue);
+            exit(1);
+        }
+
         freeVar(right);
-        printf("Impossible symbole value : %d\n", myCalc->symbole->value);
-        exit(1);
+        return left;
+
+    }else{
+        return duplicateVar(myCalc->symbole);
     }
     
-    freeVar(right);
-    return left;
 }
 
 void incrementFctIndex(CalculNb tree, int num){
-    if(tree && tree->symbole->type == 2){
-        tree->symbole->value = tree->symbole->value + num;
-    }else if(tree && tree->symbole->type == 3){
+    if(tree && strcmp(tree->symbole->type, "calcTreeFct") == 0){
+        tree->symbole->intValue = tree->symbole->intValue + num;
+    }else if(tree && strcmp(tree->symbole->type, "calcTreeCalc") == 0){
         incrementFctIndex(tree->leftChild, num);
         incrementFctIndex(tree->rightChild, num);
     }

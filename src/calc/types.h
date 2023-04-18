@@ -8,14 +8,14 @@
 
 /* --- Tree --- */
 
-typedef struct calcSym{
+/* typedef struct calcSym{
     int value;
     int type;
     char *variable;
-}*Symbole;
+}*Symbole; */
 
 typedef struct calcTree{
-    Symbole symbole;
+    Variable symbole;
     struct calcTree *leftChild;
     struct calcTree *rightChild;
 }*CalculNb;
