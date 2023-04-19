@@ -141,6 +141,8 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                             if(strcmp(gettedValue->type, previousVar->type)==0){
                                 if(strcmp(previousVar->type, "int")==0){
                                     previousVar->intValue = gettedValue->intValue;
+                                }else if(strcmp(previousVar->type, "float")==0){
+                                    previousVar->floatValue = gettedValue->floatValue;
                                 }
                             }else{
                                 printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
@@ -169,6 +171,8 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     if(strcmp(gettedValue->type, previousVar->type)==0){
                         if(strcmp(previousVar->type, "int")==0){
                             previousVar->intValue = gettedValue->intValue;
+                        }else if(strcmp(previousVar->type, "float")==0){
+                            previousVar->floatValue = gettedValue->floatValue;
                         }
                     }else{
                         printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
@@ -176,7 +180,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     freeVar(gettedValue);
                 }else{
                     Variable storedValue = lastValue(myStack);
-                    changeName(storedValue, currentAction->var->name, "int");
+                    changeName(storedValue, currentAction->var->name, storedValue->type);
                     storeVar(variables, storedValue);
                 }
                 i = i+1;
@@ -299,7 +303,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             }else{
                 i = freeContext(variables);
             }
-        }else if(currentAction->type==6){
+        }else if(currentAction->type==6){ /* delete var */
             deleteVar(variables, currentAction->var->name);
             i = i+1;
         }else{

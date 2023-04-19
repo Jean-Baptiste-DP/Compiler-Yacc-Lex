@@ -1,1 +1,2 @@
-print(0.1);
+float variable = 0.1;
+print(variable);
