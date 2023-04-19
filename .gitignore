@@ -9,6 +9,6 @@ lex.yy.c
 # other
 notes.md
 .vscode
-*.bash
+run.bash
 testCalc.txt
 examples/output*.txt

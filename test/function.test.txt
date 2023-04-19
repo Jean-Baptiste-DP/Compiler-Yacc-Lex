@@ -1,0 +1,16 @@
+function i_parmis_j(int i, int j){
+    if(i==0 || i==j){
+        return 1;
+    }
+    else{
+        return i_parmis_j(i-1,j-1)+i_parmis_j(i,j-1);
+    }
+}
+
+print(i_parmis_j(3,5));
+
+function addition(int first, int second){
+    return first + second;
+}
+
+print(addition(1,addition(2,addition(3,4))));
