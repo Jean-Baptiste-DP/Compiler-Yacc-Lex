@@ -131,6 +131,90 @@ void freeCalculNb(CalculNb myCalc){
     }
 }
 
+Variable integerCalculation(Variable var1, Variable var2, int operator){
+    int num1 = var1->intValue;
+    int num2 = var2->intValue;
+
+    if(operator==0){
+        var1->intValue = num1*num2;
+    }else if(operator==1){
+        var1->intValue = num1/num2;
+    }else if(operator==2){
+        var1->intValue = num1+num2;
+    }else if(operator==3){
+        var1->intValue = num1-num2;
+    }else if(operator==4){
+        var1->intValue = num1%num2;
+    }else if(operator==5){
+        var1->intValue = -num1;
+    }else if(operator==6){
+        var1->intValue = !num1;
+    }else if(operator==7){
+        var1->intValue = num1||num2;
+    }else if(operator==8){
+        var1->intValue = num1&&num2;
+    }else if(operator==9){
+        var1->intValue = num1==num2;
+    }else if(operator==10){
+        var1->intValue = num1!=num2;
+    }else if(operator==11){
+        var1->intValue = num1>=num2;
+    }else if(operator==12){
+        var1->intValue = num1<=num2;
+    }else if(operator==13){
+        var1->intValue = num1>num2;
+    }else if(operator==14){
+        var1->intValue = num1<num2;
+    }
+
+    freeVar(var2);
+    return var1;
+}
+
+Variable floatCalculation(Variable var1, Variable var2, int operator){
+    float num1 = var1->floatValue;
+    float num2 = var2->floatValue;
+
+    if(operator==0){
+        var1->floatValue = num1*num2;
+    }else if(operator==1){
+        var1->floatValue = num1/num2;
+    }else if(operator==2){
+        var1->floatValue = num1+num2;
+    }else if(operator==3){
+        var1->floatValue = num1-num2;
+    }else if(operator==4){
+        printf("%% operator need integer values\n");
+    }else if(operator==5){
+        var1->floatValue = -num1;
+    }
+
+    if(operator>=6 && operator<=8){
+        printf("Cannot convert float value to boolean\n");
+    }
+
+    if(operator>=9 && operator<=14){
+        changeName(var1, var1->name, "int");
+    }
+    
+    if(operator==9){
+        var1->intValue = num1==num2;
+    }else if(operator==10){
+        var1->intValue = num1!=num2;
+    }else if(operator==11){
+        var1->intValue = num1>=num2;
+    }else if(operator==12){
+        var1->intValue = num1<=num2;
+    }else if(operator==13){
+        var1->intValue = num1>num2;
+    }else if(operator==14){
+        var1->intValue = num1<num2;
+    }
+
+    freeVar(var2);
+    return var1;
+}
+
 /* Execute Calcul */
 
 Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
@@ -150,57 +234,21 @@ Variable runCalculNb(CalculNb myCalc, AllCalcFct fct, Data myData){
         if(myCalc->symbole->intValue==5 || myCalc->symbole->intValue==6){
             Variable child = runCalculNb(myCalc->leftChild, fct, myData);
             
-            if(myCalc->symbole->intValue==5){
-                child->intValue = - child->intValue;
-            }else{
-                child->intValue = ! child->intValue;
+            if(strcmp(child->type, "int")==0){
+                return integerCalculation(child, newVar("", ""), myCalc->symbole->intValue);
+            }else if(strcmp(child->type, "float")==0){
+                return floatCalculation(child, newVar("", ""), myCalc->symbole->intValue);
             }
-
-            return child;
         }
-
-        /* TODO check if left type == right type */
-        /* Send calculs to differents types */
 
         Variable left = runCalculNb(myCalc->leftChild, fct, myData);
         Variable right = runCalculNb(myCalc->rightChild, fct, myData);
 
-        if(myCalc->symbole->intValue==0){
-            left->intValue = left->intValue*right->intValue;
-        }else if(myCalc->symbole->intValue==1){
-            left->intValue = left->intValue/right->intValue;
-        }else if(myCalc->symbole->intValue==2){
-            left->intValue = left->intValue+right->intValue;
-        }else if(myCalc->symbole->intValue==3){
-            left->intValue = left->intValue-right->intValue;
-        }else if(myCalc->symbole->intValue==4){
-            left->intValue = left->intValue%right->intValue;
-        }else if(myCalc->symbole->intValue==7){
-            left->intValue = left->intValue||right->intValue;
-        }else if(myCalc->symbole->intValue==8){
-            left->intValue = left->intValue&&right->intValue;
-        }else if(myCalc->symbole->intValue==9){
-            left->intValue = left->intValue==right->intValue;
-        }else if(myCalc->symbole->intValue==10){
-            left->intValue = left->intValue!=right->intValue;
-        }else if(myCalc->symbole->intValue==11){
-            left->intValue = left->intValue>=right->intValue;
-        }else if(myCalc->symbole->intValue==12){
-            left->intValue = left->intValue<=right->intValue;
-        }else if(myCalc->symbole->intValue==13){
-            left->intValue = left->intValue>right->intValue;
-        }else if(myCalc->symbole->intValue==14){
-            left->intValue = left->intValue<right->intValue;
-        }else{
-            printf("Calc don't match possibilities");
-            freeVar(left);
-            freeVar(right);
-            printf("Impossible symbole value : %d\n", myCalc->symbole->intValue);
-            exit(1);
+        if(strcmp(left->type, "int")==0){
+            return integerCalculation(left, right, myCalc->symbole->intValue);
+        }else if(strcmp(left->type, "float")==0){
+            return floatCalculation(left, right, myCalc->symbole->intValue);
         }
-
-        freeVar(right);
-        return left;
 
     }else{
         return duplicateVar(myCalc->symbole);

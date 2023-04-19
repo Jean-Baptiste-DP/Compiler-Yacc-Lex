@@ -1,2 +1,11 @@
-float variable = 0.1;
-print(variable);
+float myVar;
+
+myVar = (0.1453 + 0.3914)*2.;
+
+print(myVar);
+
+if(myVar>0.35){
+    print(1);
+}else{
+    print(0);
+}
