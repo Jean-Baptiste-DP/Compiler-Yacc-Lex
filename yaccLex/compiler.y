@@ -76,23 +76,23 @@ action : print '('Calcul')' ';'     {printf("print");storeAction(myPrgm,newActio
 | '{' line '}'                      {;}
 ;
 
-Calcul : Expression     {$$=$1;}
-| Condition             {$$=$1;}
+Calcul : Expression     {$$ = $1;}
+| Condition             {$$ = $1;}
 
-Expression:Expression'*'Expression  {$$=FctCalc("__mul__",newParameter($1, newParameter($3, NULL)), 1);}
-|Expression'/'Expression            {$$=FctCalc("__div__",newParameter($1, newParameter($3, NULL)), 1);}
-|Expression'+'Expression            {$$=FctCalc("__add__",newParameter($1, newParameter($3, NULL)), 1);}
-|Expression'-'Expression            {$$=FctCalc("__sub__",newParameter($1, newParameter($3, NULL)), 1);}
-|Expression'%'Expression            {$$=FctCalc("__mod__",newParameter($1, newParameter($3, NULL)), 1);}
-|'('Expression')'                   {$$=$2;}
-|'-' Expression %prec UMINUS        {$$=FctCalc("__sub__",newParameter($2, NULL), 1);}
-| NUMBER                            {$$=ConstCalcInt($1);}
-| FLOAT                             {$$=ConstCalcFloat($1);}
-| VARNAME '(' callParameter ')'     {$$=FctCalc($1, $3, 0); free($1);}
-| VARNAME                           {$$=VarCalc($1);free($1);}
+Expression:Expression'*'Expression  {$$ = FctCalc("__mul__",newParameter($1, newParameter($3, NULL)), 1);}
+|Expression'/'Expression            {$$ = FctCalc("__div__",newParameter($1, newParameter($3, NULL)), 1);}
+|Expression'+'Expression            {$$ = FctCalc("__add__",newParameter($1, newParameter($3, NULL)), 1);}
+|Expression'-'Expression            {$$ = FctCalc("__sub__",newParameter($1, newParameter($3, NULL)), 1);}
+|Expression'%'Expression            {$$ = FctCalc("__mod__",newParameter($1, newParameter($3, NULL)), 1);}
+|'('Expression')'                   {$$ = $2;}
+|'-' Expression %prec UMINUS        {$$ = FctCalc("__sub__",newParameter($2, NULL), 1);}
+| NUMBER                            {$$ = ConstCalcInt($1);}
+| FLOAT                             {$$ = ConstCalcFloat($1);}
+| VARNAME '(' callParameter ')'     {$$ = FctCalc($1, $3, 0); free($1);}
+| VARNAME                           {$$ = VarCalc($1);free($1);}
 ;
 
-Condition : NOT Condition               {$$ =FctCalc("__not__",newParameter($2, NULL), 1);}
+Condition : NOT Condition               {$$ = FctCalc("__not__",newParameter($2, NULL), 1);}
 | Condition AND Condition               {$$ = FctCalc("__and__",newParameter($1, newParameter($3, NULL)), 1);}
 | Condition OR Condition                {$$ = FctCalc("__or__",newParameter($1, newParameter($3, NULL)), 1);}
 | '('Condition')'                       {$$ = $2;}
@@ -120,9 +120,9 @@ whileLoop : WHILE Condition     {storeAction(myPrgm,newAction(3,"",0,storeCalcul
 '{' line '}'                    {whileEndGoto(myStack, myPrgm);}
 ;
 
-callParameter :                 {$$=NULL;}
-| Calcul ',' callParameter      {$$=newParameter($1, $3);}
-| Calcul                        {$$=newParameter($1, NULL);}
+callParameter :                 {$$ = NULL;}
+| Calcul ',' callParameter      {$$ = newParameter($1, $3);}
+| Calcul                        {$$ = newParameter($1, NULL);}
 ;
 
 defparameters :                                 {;}

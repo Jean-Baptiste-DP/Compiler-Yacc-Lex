@@ -7,9 +7,9 @@
 /* Type */
 
 VarInfo newVarInfo(char *type, char *name){
-    char *myType = malloc(strlen(type)*sizeof(char));
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
     strcpy(myType, type);
-    char *myName = malloc(strlen(name)*sizeof(char));
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
     strcpy(myName, name);
     VarInfo myVar = malloc(sizeof(VarInfo));
     myVar->type = myType;
@@ -27,8 +27,8 @@ void freeVarInfo(VarInfo var){
 /* Initiate a variable */
 
 Variable newVarInt(char *name, char *type, int value){
-    char *myName = malloc(strlen(name)*sizeof(char));
-    char *myType = malloc(strlen(type)*sizeof(char));
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
     strcpy(myName, name);
     strcpy(myType, type);
     Variable var = malloc(sizeof(Variable));
@@ -39,8 +39,8 @@ Variable newVarInt(char *name, char *type, int value){
 }
 
 Variable newVarFloat(char *name, char *type, float value){
-    char *myName = malloc(strlen(name)*sizeof(char));
-    char *myType = malloc(strlen(type)*sizeof(char));
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
     strcpy(myName, name);
     strcpy(myType, type);
     Variable var = malloc(sizeof(Variable));
@@ -51,8 +51,8 @@ Variable newVarFloat(char *name, char *type, float value){
 }
 
 Variable newVar(char *name, char *type){
-    char *myName = malloc(strlen(name)*sizeof(char));
-    char *myType = malloc(strlen(type)*sizeof(char));
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
     strcpy(myName, name);
     strcpy(myType, type);
     Variable var = malloc(sizeof(Variable));
@@ -72,14 +72,18 @@ Variable duplicateVar(Variable var){
 /* Delete a variable */
 
 void freeVar(Variable var){
-    free(var->name);
+    printf("free var %s(%s)\n", var->name, var->type);
     free(var->type);
+    printf("step 1\n");
+    free(var->name);
+    printf("step 2\n");
     free(var);
+    printf("End free var\n");
 }
 
 void changeName(Variable var, char *name, char *type){
-    char *myName = malloc(strlen(name)*sizeof(char));
-    char *myType = malloc(strlen(type)*sizeof(char));
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
     strcpy(myName, name);
     strcpy(myType, type);
     free(var->name);

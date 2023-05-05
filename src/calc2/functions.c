@@ -7,7 +7,7 @@
 
 int runFunction(char *name, Data myStack, Data myData, int currentLine){
     char *delim = "/";
-    char *functionName = malloc(sizeof(char)*strlen(name));
+    char *functionName = malloc(sizeof(char)*(strlen(name)+1));
     strcpy(functionName, name);
     char* type = strtok(functionName, delim);
     char* methode = strtok(NULL, delim);

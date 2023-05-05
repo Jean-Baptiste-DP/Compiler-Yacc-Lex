@@ -4,14 +4,14 @@
 #include "calculs.h"
 
 char *concatString2(char *str1, char *str2){
-    char *value = malloc(sizeof(char)*(strlen(str1)+strlen(str2)));
+    char *value = malloc(sizeof(char)*(strlen(str1)+strlen(str2)+1));
     strcpy(value, str1);
     strcat(value, str2);
     return value;
 }
 
 char *concatString3(char *str1, char *str2, char *str3){
-    char *value = malloc(sizeof(char)*(strlen(str1)+strlen(str2)+strlen(str3)));
+    char *value = malloc(sizeof(char)*(strlen(str1)+strlen(str2)+strlen(str3)+1));
     strcpy(value, str1);
     strcat(value, str2);
     strcat(value, str3);
@@ -32,9 +32,10 @@ Calcul VarCalc(char *name){
 
 Calcul ConstCalcInt(int constante){
     Calcul myCalc = malloc(sizeof(Calcul));
-    Variable myConstVar = newVarInt("", "int", constante);
+    // Variable myConstVar = newVarInt("", "int", constante);
+    Variable myConstVar = newVar("const", "int");
+    myConstVar->intValue = constante;
     myCalc->var = myConstVar;
-    myCalc->params = NULL;
     myCalc->params = NULL;
     myCalc->values = NULL;
     myCalc->waitingResponse = NULL;
@@ -45,7 +46,6 @@ Calcul ConstCalcFloat(float constante){
     Calcul myCalc = malloc(sizeof(Calcul));
     Variable myConstVar = newVarFloat("", "float", constante);
     myCalc->var = myConstVar;
-    myCalc->params = NULL;
     myCalc->params = NULL;
     myCalc->values = NULL;
     myCalc->waitingResponse = NULL;
@@ -174,7 +174,7 @@ Variable runCalcul(Calcul myCalc, Data myData){
 ParaResponse initResp(char *fctName){
     ParaResponse resp = malloc(sizeof(ParaResponse));
     resp->depth = 1;
-    char *myName = malloc(strlen(fctName)*sizeof(char));
+    char *myName = malloc((strlen(fctName)+1)*sizeof(char));
     strcpy(myName, fctName);
     resp->funcName = myName;
     return resp;
