@@ -14,11 +14,13 @@
 /* --- Actions --- */
 
 Action newAction(int type,char *varName,int line,int calc, char *varType){
+    /* BUG if switch line 18 or 19 -> impossible to free the pointer line 18 */
+    VarInfo myVarInfo = newVarInfo(varType, varName);
     Action act = malloc(sizeof(struct action));
     act->type = type;
     act->line = line;
     act->calc = calc;
-    act->var = newVarInfo(varType, varName);
+    act->var = myVarInfo;
     return act;
 }
 
@@ -72,6 +74,7 @@ Action getAction(Program myPrgm, int index){
 
 void freeProgram(Program myPgrm){
     for(int i=0; i<myPgrm->lastElement; i=i+1){
+        /* BUG freeing type 0 or 1 */
         freeAction(myPgrm->line[i]);
     }
     free(myPgrm->line);
@@ -133,19 +136,19 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
         if(currentAction->type==0){ /* assigment */
             if(isEmpty(myStack)){
                 if(currentAction->calc>=0){
-                    char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
+                    char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack);
                     if(strcmp(response, "")==0){
                         if(isVarExist(variables, currentAction->var->name)){
                             Variable gettedValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
                             Variable previousVar = getVar(variables, currentAction->var->name);
-                            if(strcmp(gettedValue->type, previousVar->type)==0){
-                                if(strcmp(previousVar->type, "int")==0){
+                            if(strcmp(gettedValue->info->type, previousVar->info->type)==0){
+                                if(strcmp(previousVar->info->type, "int")==0){
                                     previousVar->intValue = gettedValue->intValue;
-                                }else if(strcmp(previousVar->type, "float")==0){
+                                }else if(strcmp(previousVar->info->type, "float")==0){
                                     previousVar->floatValue = gettedValue->floatValue;
                                 }
                             }else{
-                                printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
+                                printf("Cannot match types %s with %s\n", previousVar->info->type, gettedValue->info->type);
                             }
                             freeVar(gettedValue);
                         }else{
@@ -153,12 +156,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                         }
                         i = i+1;
                     }else{
-                        if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                            storeVar(variables, newVarInt("", "context", i));
-                            i = getVar(variables, response)->intValue;
-                        }else{
-                            printf("The function %s doesn't exist\n", response);
-                            i = i+1;
+                        int nextLine = runFunction(response, myStack, variables, i);
+                        if(nextLine!=-1){
+                            i = nextLine;
                         }
                     }
                 }else{
@@ -168,19 +168,19 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 if(isVarExist(variables, currentAction->var->name)){
                     Variable gettedValue = lastValue(myStack);
                     Variable previousVar = getVar(variables, currentAction->var->name);
-                    if(strcmp(gettedValue->type, previousVar->type)==0){
-                        if(strcmp(previousVar->type, "int")==0){
+                    if(strcmp(gettedValue->info->type, previousVar->info->type)==0){
+                        if(strcmp(previousVar->info->type, "int")==0){
                             previousVar->intValue = gettedValue->intValue;
-                        }else if(strcmp(previousVar->type, "float")==0){
+                        }else if(strcmp(previousVar->info->type, "float")==0){
                             previousVar->floatValue = gettedValue->floatValue;
                         }
                     }else{
-                        printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
+                        printf("Cannot match types %s with %s\n", previousVar->info->type, gettedValue->info->type);
                     }
                     freeVar(gettedValue);
                 }else{
                     Variable storedValue = lastValue(myStack);
-                    changeName(storedValue, currentAction->var->name, storedValue->type);
+                    changeName(storedValue, currentAction->var->name, storedValue->info->type);
                     storeVar(variables, storedValue);
                 }
                 i = i+1;
@@ -188,30 +188,26 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
         }else if(currentAction->type==1){/* new Variable */
             if(isEmpty(myStack)){
                 if(currentAction->calc>=0){
-                    char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
+                    char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack); 
                     if(strcmp(response, "")==0){
                         if(isVarExistInContext(variables, currentAction->var->name)){
                             printf("Variable \"%s\" has already been declared\n", currentAction->var->name);
                         }else{
                             if(currentAction->calc>=0){
                                 Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                                if(strcmp(gettedVar->type, currentAction->var->type)==0){
-                                    changeName(gettedVar, currentAction->var->name, gettedVar->type);
+                                if(strcmp(gettedVar->info->type, currentAction->var->type)==0){
+                                    changeName(gettedVar, currentAction->var->name, gettedVar->info->type);
                                     storeVar(variables, gettedVar);
                                 }else{
-                                    printf("Can't assign %s value to %s variable\n", gettedVar->type, currentAction->var->type);
+                                    printf("Can't assign %s value to %s variable\n", gettedVar->info->type, currentAction->var->type);
                                 }
                             }
                         }
                         i = i+1;
                     }else{
-                        if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                            /* TODO check type */
-                            storeVar(variables, newVarInt("", "context", i));
-                            i = getVar(variables, response)->intValue;
-                        }else{
-                            printf("The function %s doesn't exist\n", response);
-                            i = i+1;
+                        int nextLine = runFunction(response, myStack, variables, i);
+                        if(nextLine!=-1){
+                            i = nextLine;
                         }
                     }
                 }else{
@@ -225,53 +221,47 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     printf("Variable \"%s\" has already been declared\n", currentAction->var->name);
                 }else{
                     Variable storedValue = lastValue(myStack);
-                    if(strcmp(storedValue->type, currentAction->var->type)==0){
-                        changeName(storedValue, currentAction->var->name, storedValue->type);
+                    if(strcmp(storedValue->info->type, currentAction->var->type)==0){
+                        changeName(storedValue, currentAction->var->name, storedValue->info->type);
                         storeVar(variables, storedValue);
                     }else{
-                        printf("Can't assign %s value to %s variable\n", storedValue->type, currentAction->var->type);
+                        printf("Can't assign %s value to %s variable\n", storedValue->info->type, currentAction->var->type);
                     }
                 }
                 i = i+1;
             }
         }
         else if(currentAction->type==2){/* print calcul */
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack);
             if(strcmp(response, "")==0){
                 Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                if(strcmp(gettedVar->type, "int")==0){
+                if(strcmp(gettedVar->info->type, "int")==0){
                     printf("%d\n", gettedVar->intValue);
-                }else if(strcmp(gettedVar->type, "float")==0){
+                }else if(strcmp(gettedVar->info->type, "float")==0){
                     printf("%f\n", gettedVar->floatValue);
                 }
                 freeVar(gettedVar);
                 i = i+1;
             }else{
-                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                    storeVar(variables, newVarInt("", "context", i));
-                    i = getVar(variables, response)->intValue;
-                }else{
-                    printf("The function %s doesn't exist\n", response);
-                    i = i+1;
+                int nextLine = runFunction(response, myStack, variables, i);
+                if(nextLine!=-1){
+                    i = nextLine;
                 }
             }
         }else if(currentAction->type==3){/* if function */
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
+            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack);
             if(strcmp(response, "")==0){
                 Variable gettedValue= runCalcul(getCalc(calculs, currentAction->calc), variables);
-                if(strcmp(gettedValue->type, "int")==0 && gettedValue->intValue){
+                if(strcmp(gettedValue->info->type, "int")==0 && gettedValue->intValue){
                     i = i+2;
                 }else{
                     i = i+1;
                 }
                 freeVar(gettedValue);
             }else{
-                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                    storeVar(variables, newVarInt("", "context", i));
-                    i = getVar(variables, response)->intValue;
-                }else{
-                    printf("The function %s doesn't exist\n", response);
-                    i = i+1;
+                int nextLine = runFunction(response, myStack, variables, i);
+                if(nextLine!=-1){
+                    i = nextLine;
                 }
             }
         }else if(currentAction->type==4){/* goto line */
@@ -283,21 +273,18 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             }
         }else if(currentAction->type==5){ /* exit fct */
             if(currentAction->calc>=0){
-                char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
+                char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack);
                 if(strcmp(response, "")==0){
                     
                     Variable returnValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
                     i = freeContext(variables);
-                    changeName(returnValue, "return", returnValue->type);
+                    changeName(returnValue, "return", returnValue->info->type);
                     storeVar(variables, returnValue);
                     
                 }else{
-                    if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                        storeVar(variables, newVarInt("", "context", i));
-                        i = getVar(variables, response)->intValue;
-                    }else{
-                        printf("The function %s doesn't exist\n", response);
-                        i = i+1;
+                    int nextLine = runFunction(response, myStack, variables, i);
+                    if(nextLine!=-1){
+                        i = nextLine;
                     }
                 }
             }else{

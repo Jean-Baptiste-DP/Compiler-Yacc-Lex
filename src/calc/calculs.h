@@ -1,23 +1,49 @@
-#define CALCULS
+#ifndef DATA
+#include "../variables.h"
+#endif
 
-#include "types.h"
+#ifndef STACK
+#include "../stack.h"
+#endif
 
-#include "tree.h"
-#include "functions.h"
+typedef struct calcParameters{
+    struct calcul *param;
+    struct calcParameters *next;
+}* CalcParameters;
 
-/* --- One calcul --- */
+typedef struct calcul{
+    Variable var;
+    CalcParameters params;
+    Data values;
+    Stack waitingResponse;
+}* Calcul;
 
-Calcul newCalc(CalculNb nb, AllCalcFct fct);
-void freeCalcul(Calcul calc);
-char *getCalcCallBack(Calcul myCalc, Data myData, CalcStorage myCalcStorage, Data myStack);
-Variable runCalcul(Calcul myCalc, Data myData);
+typedef struct paraResponse{
+    int depth;
+    char *funcName;
+}*ParaResponse;
+
+typedef struct calcLine{
+    int length;
+    int lastElement;
+    Calcul *line;
+}*CalcStorage;
+
+Calcul VarCalc(char *name);
 Calcul ConstCalcInt(int constante);
 Calcul ConstCalcFloat(float constante);
-Calcul VarCalc(char *name);
-Calcul FctCalc(char *name, FctParameters parameters);
-Calcul OpeCalc(int operat, Calcul left, Calcul right);
+Calcul FctCalc(char *name, CalcParameters parameters, int method); // method is a boolean = 1 if the function is a class method, else 0
+void freeCalcul(Calcul calc);
 
-/* --- All calculs --- */
+CalcParameters newParameter(Calcul calc, CalcParameters nextParam);
+void freeParameters(CalcParameters parameters);
+
+char *getCalcCallBack(Calcul myCalc, Data myData, Data myStack);
+ParaResponse getCallBack(CalcParameters params, Data myData, Data myStack, int waiting);
+void getParametersValues(CalcParameters params, Data myStack, Data myData);
+Variable runCalcul(Calcul myCalc, Data myData);
+ParaResponse initResp(char *fctName);
+void freeResp(ParaResponse resp);
 
 CalcStorage newCalcStorage();
 int storeCalcul(CalcStorage storage, Calcul calc);

@@ -7,6 +7,7 @@
 #include "stack.h"
 #include "variables.h"
 #include "calc/calculs.h"
+#include "calc/functions.h"
 
 /* --- Type definition --- */
 
