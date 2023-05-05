@@ -18,6 +18,7 @@ VarInfo newVarInfo(char *type, char *name){
 }
 
 void freeVarInfo(VarInfo var){
+    printf("Free Var info -%s- -%s-\n", var->type, var->name);
     free(var->type);
     free(var->name);
     free(var);
@@ -262,8 +263,10 @@ void freeDataStack(DataStack variables){
 }
 
 void freeData(Data variables){
-    freeDataStack(variables->myData);
-    free(variables);
+    if(variables){
+        freeDataStack(variables->myData);
+        free(variables);
+    }
 }
 
 DataStack freeContextStack(DataStack variables){
@@ -309,4 +312,16 @@ Variable lastValue(Data variables){
 void removeData(Data variables){
     freeDataStack(variables->myData);
     variables->myData=newDataStack();
+}
+
+int countVariable(DataStack variables){
+    if(isEmptyStack(variables)){
+        return 0;
+    }else{
+        return 1+countVariable(variables->next);
+    }
+}
+
+int numberVariable(Data variables){
+    return countVariable(variables->myData);
 }

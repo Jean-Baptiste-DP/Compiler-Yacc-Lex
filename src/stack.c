@@ -21,8 +21,10 @@ void freeIntStack(IntStack stack){
 }
 
 void freeStack(Stack stack){
-    freeIntStack(stack->stack);
-    free(stack);
+    if(stack){
+        freeIntStack(stack->stack);
+        free(stack);
+    }
 }
 
 void removeStack(Stack stack){

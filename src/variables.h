@@ -67,6 +67,7 @@ void freeDataStack(DataStack variables);
 DataStack freeContextStack(DataStack variables);
 DataStack freeOneInStack(DataStack variables);
 void printAllVariables(DataStack variables);
+int countVariable(DataStack variables);
 
 /* --- Data Storage --- */
 
@@ -83,3 +84,4 @@ void freeData(Data variables);
 int freeContext(Data variables);
 Variable lastValue(Data variables);
 void removeData(Data variables);
+int numberVariable(Data variables);
