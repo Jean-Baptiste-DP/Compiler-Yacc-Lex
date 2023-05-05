@@ -14,7 +14,7 @@
 /* --- Actions --- */
 
 Action newAction(int type,char *varName,int line,int calc, char *varType){
-    Action act = malloc(sizeof(Action));
+    Action act = malloc(sizeof(struct action));
     act->type = type;
     act->line = line;
     act->calc = calc;
@@ -31,7 +31,7 @@ void freeAction(Action act){
 
 Program newPrgm(){
     int size = 4;
-    Program initPgrm = malloc(sizeof(Program)); 
+    Program initPgrm = malloc(sizeof(struct prgmLine)); 
     initPgrm->length = size;
     initPgrm->lastElement = 0;
     initPgrm->line = malloc(size*sizeof(Action));

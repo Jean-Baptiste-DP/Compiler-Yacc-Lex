@@ -4,7 +4,7 @@
 #include "stack.h"
 
 Stack newStack(){
-    Stack myStack = malloc(sizeof(Stack));
+    Stack myStack = malloc(sizeof(struct stack));
     myStack->stack = NULL;
     return myStack;
 }
@@ -38,7 +38,7 @@ void changeStack(Stack stack, IntStack intStack){
 }
 
 void appendInt(Stack stack, int value){
-    IntStack myStack = malloc(sizeof(IntStack));
+    IntStack myStack = malloc(sizeof(struct intStack));
     myStack->next = stack->stack;
     myStack->value = value;
     stack->stack = myStack;

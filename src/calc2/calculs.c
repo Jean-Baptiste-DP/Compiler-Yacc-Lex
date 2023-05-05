@@ -21,7 +21,7 @@ char *concatString3(char *str1, char *str2, char *str3){
 /* TODO free concatenated string */
 
 Calcul VarCalc(char *name){
-    Calcul myCalc = malloc(sizeof(Calcul));
+    Calcul myCalc = malloc(sizeof(struct calcul));
     Variable myVar = newVarInt(name, "__treeCalcVar__", 5);
     myCalc->var = myVar;
     myCalc->params = NULL;
@@ -31,7 +31,7 @@ Calcul VarCalc(char *name){
 }
 
 Calcul ConstCalcInt(int constante){
-    Calcul myCalc = malloc(sizeof(Calcul));
+    Calcul myCalc = malloc(sizeof(struct calcul));
     // Variable myConstVar = newVarInt("", "int", constante);
     Variable myConstVar = newVarInt("", "int", 5);
     myCalc->var = myConstVar;
@@ -42,7 +42,7 @@ Calcul ConstCalcInt(int constante){
 }
 
 Calcul ConstCalcFloat(float constante){
-    Calcul myCalc = malloc(sizeof(Calcul));
+    Calcul myCalc = malloc(sizeof(struct calcul));
     Variable myConstVar = newVarFloat("", "float", constante);
     myCalc->var = myConstVar;
     myCalc->params = NULL;
@@ -52,7 +52,7 @@ Calcul ConstCalcFloat(float constante){
 }
 
 Calcul FctCalc(char *name, CalcParameters parameters, int method){
-    Calcul myCalc = malloc(sizeof(Calcul));
+    Calcul myCalc = malloc(sizeof(struct calcul));
     Variable myFctVar = newVarInt(name, "__treeCalcFct__", method);
     myCalc->var = myFctVar;
     myCalc->params = parameters;
@@ -72,7 +72,7 @@ void freeCalcul(Calcul calc){
 }
 
 CalcParameters newParameter(Calcul calc, CalcParameters nextParam){
-    CalcParameters myParam = malloc(sizeof(CalcParameters));
+    CalcParameters myParam = malloc(sizeof(struct calcParameters));
     myParam->param = calc;
     myParam->next = nextParam;
     return myParam;
@@ -171,7 +171,7 @@ Variable runCalcul(Calcul myCalc, Data myData){
 }
 
 ParaResponse initResp(char *fctName){
-    ParaResponse resp = malloc(sizeof(ParaResponse));
+    ParaResponse resp = malloc(sizeof(struct paraResponse));
     resp->depth = 1;
     char *myName = malloc((strlen(fctName)+1)*sizeof(char));
     strcpy(myName, fctName);
@@ -188,7 +188,7 @@ void freeResp(ParaResponse resp){
 
 CalcStorage newCalcStorage(){
     int size = 4;
-    CalcStorage initStor = malloc(sizeof(CalcStorage));
+    CalcStorage initStor = malloc(sizeof(struct calcLine));
     initStor->length = size;
     initStor->lastElement = 0;
     initStor->line = malloc(size*sizeof(Calcul));

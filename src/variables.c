@@ -11,7 +11,7 @@ VarInfo newVarInfo(char *type, char *name){
     strcpy(myType, type);
     char *myName = malloc((strlen(name)+1)*sizeof(char));
     strcpy(myName, name);
-    VarInfo myVar = malloc(sizeof(VarInfo));
+    VarInfo myVar = malloc(sizeof(struct varInfo));
     myVar->type = myType;
     myVar->name = myName;
     return myVar;
@@ -38,21 +38,21 @@ void changeVarInfo(VarInfo var, char *name, char *type){
 /* Initiate a variable */
 
 Variable newVarInt(char *name, char *type, int value){
-    Variable var = malloc(sizeof(Variable));
+    Variable var = malloc(sizeof(struct VariableStruct));
     var->info = newVarInfo(type, name);
     var->intValue = value;
     return var;
 }
 
 Variable newVarFloat(char *name, char *type, float value){
-    Variable var = malloc(sizeof(Variable));
+    Variable var = malloc(sizeof(struct VariableStruct));
     var->info = newVarInfo(type, name);
     var->floatValue = value;
     return var;
 }
 
 Variable newVar(char *name, char *type){
-    Variable var = malloc(sizeof(Variable));
+    Variable var = malloc(sizeof(struct VariableStruct));
     var->info = newVarInfo(type, name);
     return var;
 }
@@ -85,14 +85,14 @@ void changeName(Variable var, char *name, char *type){
 /* Intitiat Data type */
 
 DataStack newDataStack(){
-    DataStack initVar = malloc(sizeof(DataStack));
+    DataStack initVar = malloc(sizeof(struct AllVariables));
     initVar->var = NULL;
     initVar->next = NULL;
     return initVar;
 }
 
 Data newData(){
-    Data initData = malloc(sizeof(Data));
+    Data initData = malloc(sizeof(struct data));
     initData->myData = newDataStack();
     return initData;
 }
@@ -231,7 +231,7 @@ void removeVar(Data variables, char *name){
 /* Add new variable */
 
 DataStack storeVarStack(DataStack variables, Variable var){
-    DataStack newDict = malloc(sizeof(DataStack));
+    DataStack newDict = malloc(sizeof(struct AllVariables));
     newDict->var = var;
     newDict->next = variables;
     return newDict;
