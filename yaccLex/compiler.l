@@ -12,10 +12,10 @@
 "!"             {return NOT;}
 "=="            {return EQ;}
 "!="            {return NEQ;}
-">="            {return GEQ;}
-"<="            {return LEQ;}
-">"             {return GNEQ;}
-"<"             {return LNEQ;}
+">="            {return GE;}
+"<="            {return LE;}
+">"             {return GT;}
+"<"             {return LT;}
 "if"            {return IF;}
 "else"          {return ELSE;}
 "for"           {return FOR;}
