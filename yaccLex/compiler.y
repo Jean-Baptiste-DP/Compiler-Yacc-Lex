@@ -1,7 +1,7 @@
 %{
 /* Definition section */
 #include <stdbool.h>
-#include "./src/prgmStructure.h"
+#include "./src/prgmStructure2.h"
 #include <stdio.h>     /* C declarations used in actions */
 #include <stdlib.h>
 #include <ctype.h>
@@ -22,7 +22,7 @@ CalcStorage myCalc = NULL;
     int boolean;
     struct calcul *calc;
     char *varName;
-    struct fctParameters *param;
+    struct calcParameters *param;
     float floatVal;
 }
 
@@ -47,7 +47,7 @@ CalcStorage myCalc = NULL;
 %left AND
 %left OR /*The order of the token show the priority of computation NOT in priority in front of AND and OR*/
 %left NOT
-%token EQ NEQ GEQ LEQ GNEQ LNEQ
+%token EQ NEQ GE LE GT LT
 %left '+' '-'
 %left '*' '/' '%'
 %nonassoc UMINUS
@@ -76,34 +76,34 @@ action : print '('Calcul')' ';'     {storeAction(myPrgm,newAction(2,"",0,storeCa
 | '{' line '}'                      {;}
 ;
 
-Calcul : Expression     {$$=$1;}
-| Condition             {$$=$1;}
+Calcul : Expression     {$$ = $1;}
+| Condition             {$$ = $1;}
 
-Expression:Expression'*'Expression  {$$=OpeCalc(0,$1,$3);}
-|Expression'/'Expression            {$$=OpeCalc(1,$1,$3);}
-|Expression'+'Expression            {$$=OpeCalc(2,$1,$3);}
-|Expression'-'Expression            {$$=OpeCalc(3,$1,$3);}
-|Expression'%'Expression            {$$=OpeCalc(4,$1,$3);}
-|'('Expression')'                   {$$=$2;}
-|'-' Expression %prec UMINUS        {$$=OpeCalc(5,$2,newCalc(NULL, noFctinCalc()));}
-| NUMBER                            {$$=ConstCalcInt($1);}
-| FLOAT                             {$$=ConstCalcFloat($1);}
-| VARNAME '(' callParameter ')'     {$$=FctCalc($1, $3); free($1);}
-| VARNAME                           {$$=VarCalc($1);free($1);}
+Expression:Expression'*'Expression  {$$ = FctCalc("__mul__",newParameter($1, newParameter($3, NULL)), 1);}
+|Expression'/'Expression            {$$ = FctCalc("__div__",newParameter($1, newParameter($3, NULL)), 1);}
+|Expression'+'Expression            {$$ = FctCalc("__add__",newParameter($1, newParameter($3, NULL)), 1);}
+|Expression'-'Expression            {$$ = FctCalc("__sub__",newParameter($1, newParameter($3, NULL)), 1);}
+|Expression'%'Expression            {$$ = FctCalc("__mod__",newParameter($1, newParameter($3, NULL)), 1);}
+|'('Expression')'                   {$$ = $2;}
+|'-' Expression %prec UMINUS        {$$ = FctCalc("__sub__",newParameter($2, NULL), 1);}
+| NUMBER                            {$$ = ConstCalcInt($1);}
+| FLOAT                             {$$ = ConstCalcFloat($1);}
+| VARNAME '(' callParameter ')'     {$$ = FctCalc($1, $3, 0); free($1);}
+| VARNAME                           {$$ = VarCalc($1);free($1);}
 ;
 
-Condition : NOT Condition               {$$=OpeCalc(6,$2,newCalc(NULL, noFctinCalc()));}
-| Condition OR Condition                {$$=OpeCalc(7,$1,$3);}
-| Condition AND Condition               {$$=OpeCalc(8,$1,$3);}
+Condition : NOT Condition               {$$ = FctCalc("__not__",newParameter($2, NULL), 1);}
+| Condition AND Condition               {$$ = FctCalc("__and__",newParameter($1, newParameter($3, NULL)), 1);}
+| Condition OR Condition                {$$ = FctCalc("__or__",newParameter($1, newParameter($3, NULL)), 1);}
 | '('Condition')'                       {$$ = $2;}
 | TRUE                                  {$$ = ConstCalcInt(true);}
 | FALSE                                 {$$ = ConstCalcInt(false);}
-| Expression EQ Expression              {$$ = OpeCalc(9,$1,$3);}
-| Expression NEQ Expression             {$$ = OpeCalc(10,$1,$3);}
-| Expression GEQ Expression             {$$ = OpeCalc(11,$1,$3);}
-| Expression LEQ Expression             {$$ = OpeCalc(12,$1,$3);}
-| Expression GNEQ Expression            {$$ = OpeCalc(13,$1,$3);}
-| Expression LNEQ Expression            {$$ = OpeCalc(14,$1,$3);}
+| Expression EQ Expression              {$$ = FctCalc("__eq__",newParameter($1, newParameter($3, NULL)), 1);}
+| Expression NEQ Expression             {$$ = FctCalc("__neq__",newParameter($1, newParameter($3, NULL)), 1);}
+| Expression GE Expression              {$$ = FctCalc("__ge__",newParameter($1, newParameter($3, NULL)), 1);}
+| Expression LE Expression              {$$ = FctCalc("__le__",newParameter($1, newParameter($3, NULL)), 1);}
+| Expression GT Expression              {$$ = FctCalc("__gt__",newParameter($1, newParameter($3, NULL)), 1);}
+| Expression LT Expression              {$$ = FctCalc("__lt__",newParameter($1, newParameter($3, NULL)), 1);}
 ;
 
 endif : '{' line '}' ELSE           {gotoDest(myStack, myPrgm, 1);gotoFrom(myStack, myPrgm);} 
@@ -120,9 +120,9 @@ whileLoop : WHILE Condition     {storeAction(myPrgm,newAction(3,"",0,storeCalcul
 '{' line '}'                    {whileEndGoto(myStack, myPrgm);}
 ;
 
-callParameter :                 {$$=NULL;}
-| Calcul ',' callParameter      {$$=addParameter(storeCalcul(myCalc, $1), $3);}
-| Calcul                        {$$=addParameter(storeCalcul(myCalc, $1), NULL);}
+callParameter :                 {$$ = NULL;}
+| Calcul ',' callParameter      {$$ = newParameter($1, $3);}
+| Calcul                        {$$ = newParameter($1, NULL);}
 ;
 
 defparameters :                                 {;}
@@ -154,8 +154,8 @@ int main(){
     yyparse();
     /* displayPrgm(myPrgm); */
     runProgram(myPrgm, myCalc, variables, temporaryStorage);
-    freeProgram(myPrgm);
     freeCalcStorage(myCalc);
+    freeProgram(myPrgm);
     freeData(variables);
     freeData(temporaryStorage);
     freeStack(myStack);

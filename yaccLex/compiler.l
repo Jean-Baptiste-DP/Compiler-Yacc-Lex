@@ -12,10 +12,10 @@
 "!"             {return NOT;}
 "=="            {return EQ;}
 "!="            {return NEQ;}
-">="            {return GEQ;}
-"<="            {return LEQ;}
-">"             {return GNEQ;}
-"<"             {return LNEQ;}
+">="            {return GE;}
+"<="            {return LE;}
+">"             {return GT;}
+"<"             {return LT;}
 "if"            {return IF;}
 "else"          {return ELSE;}
 "for"           {return FOR;}
@@ -24,10 +24,10 @@
 "return"        {return RETURN;}
 "print"		    {return print;}
 "="             {return ASSIGN;}
-[0-9]+\.[0-9]*   {yylval.floatVal = atof(yytext); return FLOAT;}
+[0-9]+\.[0-9]*  {yylval.floatVal = atof(yytext); return FLOAT;}
 [0-9]+          {yylval.num = atoi(yytext); return NUMBER;}
 [a-zA-Z][a-zA-Z0-9_]*   {
-                            char *myvar = malloc(strlen(yytext)*sizeof(char));
+                            char *myvar = malloc((strlen(yytext)+1)*sizeof(char));
                             strcpy(myvar, yytext);
                             yylval.varName = myvar;
                             return VARNAME;

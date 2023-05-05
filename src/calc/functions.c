@@ -58,7 +58,7 @@ void getParametersValues(FctParameters parameter, Data myStack){
 ParaResponse initResp(char *fctName){
     ParaResponse resp = malloc(sizeof(ParaResponse));
     resp->depth = 1;
-    char *myName = malloc(strlen(fctName)*sizeof(char));
+    char *myName = malloc((strlen(fctName)+1)*sizeof(char));
     strcpy(myName, fctName);
     resp->funcName = myName;
     return resp;
@@ -96,7 +96,7 @@ void freeFctStack(FctStack myFctStack){
 
 FctRegister initFct(char *name, FctParameters parameters){
     FctRegister myFct = malloc(sizeof(FctRegister));
-    char *myname = malloc(strlen(name)*sizeof(char));
+    char *myname = malloc((strlen(name)+1)*sizeof(char));
     strcpy(myname, name);
     myFct->name = myname;
     myFct->parameters = parameters;

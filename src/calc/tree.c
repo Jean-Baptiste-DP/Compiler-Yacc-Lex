@@ -12,7 +12,7 @@
 
 // Symbole newSymbole(int type, int val, char *var){
 //     Symbole initSymb = malloc(sizeof(Symbole));
-//     char *myvar = malloc(strlen(var));
+//     char *myvar = malloc(strlen(var)+1);
 //     strcpy(myvar, var);
 //     initSymb->variable = myvar;
 //     initSymb->value = val;
