@@ -14,8 +14,7 @@ typedef struct varInfo
 
 typedef struct VariableStruct
 {
-    char *name;
-    char *type;
+    VarInfo info;
     int intValue;
     float floatValue;
 }*Variable;

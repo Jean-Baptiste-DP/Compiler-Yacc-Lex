@@ -22,7 +22,7 @@ char *concatString3(char *str1, char *str2, char *str3){
 
 Calcul VarCalc(char *name){
     Calcul myCalc = malloc(sizeof(Calcul));
-    Variable myVar = newVar(name, "__treeCalcVar__");
+    Variable myVar = newVarInt(name, "__treeCalcVar__", 5);
     myCalc->var = myVar;
     myCalc->params = NULL;
     myCalc->values = NULL;
@@ -33,8 +33,7 @@ Calcul VarCalc(char *name){
 Calcul ConstCalcInt(int constante){
     Calcul myCalc = malloc(sizeof(Calcul));
     // Variable myConstVar = newVarInt("", "int", constante);
-    Variable myConstVar = newVar("const", "int");
-    myConstVar->intValue = constante;
+    Variable myConstVar = newVarInt("", "int", 5);
     myCalc->var = myConstVar;
     myCalc->params = NULL;
     myCalc->values = NULL;
@@ -63,7 +62,7 @@ Calcul FctCalc(char *name, CalcParameters parameters, int method){
 }
 
 void freeCalcul(Calcul calc){
-    printf("Free calc type : %s\n", calc->var->type);
+    printf("Free calc type : %s\n", calc->var->info->type);
     freeVar(calc->var);
     freeParameters(calc->params);
     freeData(calc->values);
@@ -88,7 +87,7 @@ void freeParameters(CalcParameters parameters){
 }
 
 char *getCalcCallBack(Calcul myCalc, Data myData, Data myStack){
-    if(strcmp(myCalc->var->type, "__treeCalcVar__")==0 || strcmp(myCalc->var->type, "__treeCalcFct__")!=0){
+    if(strcmp(myCalc->var->info->type, "__treeCalcVar__")==0 || strcmp(myCalc->var->info->type, "__treeCalcFct__")!=0){
         return "";
     }
 
@@ -106,7 +105,7 @@ char *getCalcCallBack(Calcul myCalc, Data myData, Data myStack){
     }
     if(!myCalc->params){
         appendInt(myCalc->waitingResponse, 0);
-        return concatString2(" /", myCalc->var->name);
+        return concatString2(" /", myCalc->var->info->name);
     }
 
     ParaResponse resp = getCallBack(myCalc->params, myData, myStack, waiting);
@@ -120,9 +119,9 @@ char *getCalcCallBack(Calcul myCalc, Data myData, Data myStack){
     appendInt(myCalc->waitingResponse, 0);
 
     if(myCalc->var->intValue==0){
-        return concatString2(" /", myCalc->var->name);
+        return concatString2(" /", myCalc->var->info->name);
     }else{
-        return concatString3(myStack->myData->var->type, "/", myCalc->var->name);
+        return concatString3(myStack->myData->var->info->type, "/", myCalc->var->info->name);
     }
 }
 
@@ -153,18 +152,18 @@ void getParametersValues(CalcParameters params, Data myStack, Data myData){
 }
 
 Variable runCalcul(Calcul myCalc, Data myData){
-    if(strcmp(myCalc->var->type, "__treeCalcVar__")==0){
-        if(isVarExist(myData, myCalc->var->name)){
-            return copyVar(myData, myCalc->var->name);
+    if(strcmp(myCalc->var->info->type, "__treeCalcVar__")==0){
+        if(isVarExist(myData, myCalc->var->info->name)){
+            return copyVar(myData, myCalc->var->info->name);
         }else{
-            printf("Variable %s doesn't exist\n", myCalc->var->name);
+            printf("Variable %s doesn't exist\n", myCalc->var->info->name);
             return newVar("", "");
         }
-    }else if(strcmp(myCalc->var->type, "__treeCalcFct__")==0){
+    }else if(strcmp(myCalc->var->info->type, "__treeCalcFct__")==0){
         if(!isEmpty(myCalc->values)){
             return lastValue(myCalc->values);
         }else{
-            printf("Problem with function %s execution\n", myCalc->var->name);
+            printf("Problem with function %s execution\n", myCalc->var->info->name);
         }
     }else{
         return duplicateVar(myCalc->var);
@@ -192,7 +191,7 @@ CalcStorage newCalcStorage(){
     CalcStorage initStor = malloc(sizeof(CalcStorage));
     initStor->length = size;
     initStor->lastElement = 0;
-    initStor->line = (Calcul *) malloc(size*sizeof(Calcul));
+    initStor->line = malloc(size*sizeof(Calcul));
     return initStor;
 }
 

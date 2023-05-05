@@ -73,7 +73,7 @@ int runFunctionInt(char *name, Data myStack, Data myData){
     }
 
     if(returnedValue){
-        changeName(returnedValue, "return", returnedValue->type);
+        changeName(returnedValue, "return", returnedValue->info->type);
         storeVar(myData, returnedValue);
     }
     return -1;
