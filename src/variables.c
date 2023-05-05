@@ -18,7 +18,6 @@ VarInfo newVarInfo(char *type, char *name){
 }
 
 void freeVarInfo(VarInfo var){
-    printf("Free Var info -%s- -%s-\n", var->type, var->name);
     free(var->type);
     free(var->name);
     free(var);
@@ -68,11 +67,8 @@ Variable duplicateVar(Variable var){
 /* Delete a variable */
 
 void freeVar(Variable var){
-    printf("free var %s(%s)\n", var->info->name, var->info->type);
     freeVarInfo(var->info);
-    printf("step 2\n");
     free(var);
-    printf("End free var\n");
 }
 
 void changeName(Variable var, char *name, char *type){

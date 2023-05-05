@@ -26,9 +26,7 @@ Action newAction(int type,char *varName,int line,int calc, char *varType){
 
 void freeAction(Action act){
     freeVarInfo(act->var);
-    printf("step 1\n");
     free(act);
-    printf("step 2\n");
 }
 
 /* -- Program Actions --- */
@@ -261,7 +259,6 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 }
                 freeVar(gettedValue);
             }else{
-                printf("Get function %s\n", response);
                 int nextLine = runFunction(response, myStack, variables, i);
                 if(nextLine!=-1){
                     i = nextLine;

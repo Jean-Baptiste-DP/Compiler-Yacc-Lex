@@ -64,15 +64,15 @@ line :          {;}
 | line action   {;}
 ;
 
-action : print '('Calcul')' ';'     {printf("print");storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3), ""));}
-| IF Condition                      {printf("if");storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2), "")); gotoFrom(myStack, myPrgm);} endif
-| forLoop                           {printf("for");}
-| whileLoop                         {printf("while");}
-| function                          {printf("fct");}
-| RETURN Calcul ';'                 {printf("ret");storeAction(myPrgm,newAction(5, "", 0, storeCalcul(myCalc, $2), ""));}
-| VARNAME VARNAME ASSIGN Calcul ';' {printf("ass new");storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4), $1)); free($2);free($1);}
-| VARNAME VARNAME ';'               {printf("new");storeAction(myPrgm,newAction(1, $2, 0, -1, $1));free($2);free($1);}
-| VARNAME ASSIGN Calcul ';'         {printf("ass");storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3), "")); free($1);}
+action : print '('Calcul')' ';'     {storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3), ""));}
+| IF Condition                      {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2), "")); gotoFrom(myStack, myPrgm);} endif
+| forLoop                           {;}
+| whileLoop                         {;}
+| function                          {;}
+| RETURN Calcul ';'                 {storeAction(myPrgm,newAction(5, "", 0, storeCalcul(myCalc, $2), ""));}
+| VARNAME VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4), $1)); free($2);free($1);}
+| VARNAME VARNAME ';'               {storeAction(myPrgm,newAction(1, $2, 0, -1, $1));free($2);free($1);}
+| VARNAME ASSIGN Calcul ';'         {storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3), "")); free($1);}
 | '{' line '}'                      {;}
 ;
 
@@ -152,19 +152,11 @@ int main(){
     myPrgm = newPrgm();
     myCalc = newCalcStorage();
     yyparse();
-    printf("End Parsing\n");
-    displayPrgm(myPrgm);
-    /* runProgram(myPrgm, myCalc, variables, temporaryStorage); */
-    printf("clear\n");
     /* displayPrgm(myPrgm); */
+    runProgram(myPrgm, myCalc, variables, temporaryStorage);
     freeCalcStorage(myCalc);
-    printf("myCalc cleared\n");
     freeProgram(myPrgm);
-    printf("myPrgm cleared\n");
     freeData(variables);
-    printf("variables cleared\n");
     freeData(temporaryStorage);
-    printf("temporaryStorage cleared\n");
     freeStack(myStack);
-    printf("myStack cleared\n");
 }

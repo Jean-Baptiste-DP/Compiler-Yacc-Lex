@@ -33,7 +33,7 @@ Calcul VarCalc(char *name){
 Calcul ConstCalcInt(int constante){
     Calcul myCalc = malloc(sizeof(struct calcul));
     // Variable myConstVar = newVarInt("", "int", constante);
-    Variable myConstVar = newVarInt("", "int", 5);
+    Variable myConstVar = newVarInt("", "int", constante);
     myCalc->var = myConstVar;
     myCalc->params = NULL;
     myCalc->values = NULL;
@@ -62,13 +62,11 @@ Calcul FctCalc(char *name, CalcParameters parameters, int method){
 }
 
 void freeCalcul(Calcul calc){
-    printf("Free calc type : %s\n", calc->var->info->type);
     freeVar(calc->var);
     freeParameters(calc->params);
     freeData(calc->values);
     freeStack(calc->waitingResponse);
     free(calc);
-    printf("Free calcul ended\n");
 }
 
 CalcParameters newParameter(Calcul calc, CalcParameters nextParam){
