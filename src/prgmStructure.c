@@ -141,14 +141,14 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                         if(isVarExist(variables, currentAction->var->name)){
                             Variable gettedValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
                             Variable previousVar = getVar(variables, currentAction->var->name);
-                            if(strcmp(gettedValue->info->type, previousVar->info->type)==0){
-                                if(strcmp(previousVar->info->type, "int")==0){
+                            if(strcmp(gettedValue->type, previousVar->type)==0){
+                                if(strcmp(previousVar->type, "int")==0){
                                     previousVar->intValue = gettedValue->intValue;
-                                }else if(strcmp(previousVar->info->type, "float")==0){
+                                }else if(strcmp(previousVar->type, "float")==0){
                                     previousVar->floatValue = gettedValue->floatValue;
                                 }
                             }else{
-                                printf("Cannot match types %s with %s\n", previousVar->info->type, gettedValue->info->type);
+                                printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
                             }
                             freeVar(gettedValue);
                         }else{
@@ -168,19 +168,19 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 if(isVarExist(variables, currentAction->var->name)){
                     Variable gettedValue = lastValue(myStack);
                     Variable previousVar = getVar(variables, currentAction->var->name);
-                    if(strcmp(gettedValue->info->type, previousVar->info->type)==0){
-                        if(strcmp(previousVar->info->type, "int")==0){
+                    if(strcmp(gettedValue->type, previousVar->type)==0){
+                        if(strcmp(previousVar->type, "int")==0){
                             previousVar->intValue = gettedValue->intValue;
-                        }else if(strcmp(previousVar->info->type, "float")==0){
+                        }else if(strcmp(previousVar->type, "float")==0){
                             previousVar->floatValue = gettedValue->floatValue;
                         }
                     }else{
-                        printf("Cannot match types %s with %s\n", previousVar->info->type, gettedValue->info->type);
+                        printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
                     }
                     freeVar(gettedValue);
                 }else{
                     Variable storedValue = lastValue(myStack);
-                    changeName(storedValue, currentAction->var->name, storedValue->info->type);
+                    changeName(storedValue, currentAction->var->name, storedValue->type);
                     storeVar(variables, storedValue);
                 }
                 i = i+1;
@@ -195,11 +195,11 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                         }else{
                             if(currentAction->calc>=0){
                                 Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                                if(strcmp(gettedVar->info->type, currentAction->var->type)==0){
-                                    changeName(gettedVar, currentAction->var->name, gettedVar->info->type);
+                                if(strcmp(gettedVar->type, currentAction->var->type)==0){
+                                    changeName(gettedVar, currentAction->var->name, gettedVar->type);
                                     storeVar(variables, gettedVar);
                                 }else{
-                                    printf("Can't assign %s value to %s variable\n", gettedVar->info->type, currentAction->var->type);
+                                    printf("Can't assign %s value to %s variable\n", gettedVar->type, currentAction->var->type);
                                 }
                             }
                         }
@@ -221,11 +221,11 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     printf("Variable \"%s\" has already been declared\n", currentAction->var->name);
                 }else{
                     Variable storedValue = lastValue(myStack);
-                    if(strcmp(storedValue->info->type, currentAction->var->type)==0){
-                        changeName(storedValue, currentAction->var->name, storedValue->info->type);
+                    if(strcmp(storedValue->type, currentAction->var->type)==0){
+                        changeName(storedValue, currentAction->var->name, storedValue->type);
                         storeVar(variables, storedValue);
                     }else{
-                        printf("Can't assign %s value to %s variable\n", storedValue->info->type, currentAction->var->type);
+                        printf("Can't assign %s value to %s variable\n", storedValue->type, currentAction->var->type);
                     }
                 }
                 i = i+1;
@@ -235,9 +235,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack);
             if(strcmp(response, "")==0){
                 Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                if(strcmp(gettedVar->info->type, "int")==0){
+                if(strcmp(gettedVar->type, "int")==0){
                     printf("%d\n", gettedVar->intValue);
-                }else if(strcmp(gettedVar->info->type, "float")==0){
+                }else if(strcmp(gettedVar->type, "float")==0){
                     printf("%f\n", gettedVar->floatValue);
                 }
                 freeVar(gettedVar);
@@ -252,7 +252,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack);
             if(strcmp(response, "")==0){
                 Variable gettedValue= runCalcul(getCalc(calculs, currentAction->calc), variables);
-                if(strcmp(gettedValue->info->type, "int")==0 && gettedValue->intValue){
+                if(strcmp(gettedValue->type, "int")==0 && gettedValue->intValue){
                     i = i+2;
                 }else{
                     i = i+1;
@@ -278,7 +278,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     
                     Variable returnValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
                     i = freeContext(variables);
-                    changeName(returnValue, "return", returnValue->info->type);
+                    changeName(returnValue, "return", returnValue->type);
                     storeVar(variables, returnValue);
                     
                 }else{

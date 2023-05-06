@@ -85,7 +85,7 @@ void freeParameters(CalcParameters parameters){
 }
 
 char *getCalcCallBack(Calcul myCalc, Data myData, Data myStack){
-    if(strcmp(myCalc->var->info->type, "__treeCalcVar__")==0 || strcmp(myCalc->var->info->type, "__treeCalcFct__")!=0){
+    if(strcmp(myCalc->var->type, "__treeCalcVar__")==0 || strcmp(myCalc->var->type, "__treeCalcFct__")!=0){
         return "";
     }
 
@@ -103,7 +103,7 @@ char *getCalcCallBack(Calcul myCalc, Data myData, Data myStack){
     }
     if(!myCalc->params){
         appendInt(myCalc->waitingResponse, 0);
-        return concatString2(" /", myCalc->var->info->name);
+        return concatString2(" /", myCalc->var->name);
     }
 
     ParaResponse resp = getCallBack(myCalc->params, myData, myStack, waiting);
@@ -117,9 +117,9 @@ char *getCalcCallBack(Calcul myCalc, Data myData, Data myStack){
     appendInt(myCalc->waitingResponse, 0);
 
     if(myCalc->var->intValue==0){
-        return concatString2(" /", myCalc->var->info->name);
+        return concatString2(" /", myCalc->var->name);
     }else{
-        return concatString3(myStack->myData->var->info->type, "/", myCalc->var->info->name);
+        return concatString3(myStack->myData->var->type, "/", myCalc->var->name);
     }
 }
 
@@ -150,18 +150,18 @@ void getParametersValues(CalcParameters params, Data myStack, Data myData){
 }
 
 Variable runCalcul(Calcul myCalc, Data myData){
-    if(strcmp(myCalc->var->info->type, "__treeCalcVar__")==0){
-        if(isVarExist(myData, myCalc->var->info->name)){
-            return copyVar(myData, myCalc->var->info->name);
+    if(strcmp(myCalc->var->type, "__treeCalcVar__")==0){
+        if(isVarExist(myData, myCalc->var->name)){
+            return copyVar(myData, myCalc->var->name);
         }else{
-            printf("Variable %s doesn't exist\n", myCalc->var->info->name);
+            printf("Variable %s doesn't exist\n", myCalc->var->name);
             return newVar("", "");
         }
-    }else if(strcmp(myCalc->var->info->type, "__treeCalcFct__")==0){
+    }else if(strcmp(myCalc->var->type, "__treeCalcFct__")==0){
         if(!isEmpty(myCalc->values)){
             return lastValue(myCalc->values);
         }else{
-            printf("Problem with function %s execution\n", myCalc->var->info->name);
+            printf("Problem with function %s execution\n", myCalc->var->name);
         }
     }else{
         return duplicateVar(myCalc->var);

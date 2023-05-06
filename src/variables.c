@@ -38,41 +38,70 @@ void changeVarInfo(VarInfo var, char *name, char *type){
 
 Variable newVarInt(char *name, char *type, int value){
     Variable var = malloc(sizeof(struct VariableStruct));
-    var->info = newVarInfo(type, name);
+
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
+    strcpy(myType, type);
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
+    strcpy(myName, name);
+    var->type = myType;
+    var->name = myName;
+
     var->intValue = value;
     return var;
 }
 
 Variable newVarFloat(char *name, char *type, float value){
     Variable var = malloc(sizeof(struct VariableStruct));
-    var->info = newVarInfo(type, name);
+
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
+    strcpy(myType, type);
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
+    strcpy(myName, name);
+    var->type = myType;
+    var->name = myName;
+    
     var->floatValue = value;
     return var;
 }
 
 Variable newVar(char *name, char *type){
     Variable var = malloc(sizeof(struct VariableStruct));
-    var->info = newVarInfo(type, name);
+    
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
+    strcpy(myType, type);
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
+    strcpy(myName, name);
+    var->type = myType;
+    var->name = myName;
+    
     return var;
 }
 
 Variable duplicateVar(Variable var){
-    if(strcmp(var->info->type, "int")==0){
-        return newVarInt(var->info->name, var->info->type, var->intValue);
-    }else if(strcmp(var->info->type, "float")==0){
-        return newVarFloat(var->info->name, var->info->type, var->floatValue);
+    if(strcmp(var->type, "int")==0){
+        return newVarInt(var->name, var->type, var->intValue);
+    }else if(strcmp(var->type, "float")==0){
+        return newVarFloat(var->name, var->type, var->floatValue);
     }
 }
 
 /* Delete a variable */
 
 void freeVar(Variable var){
-    freeVarInfo(var->info);
+    free(var->type);
+    free(var->name);
     free(var);
 }
 
 void changeName(Variable var, char *name, char *type){
-    changeVarInfo(var->info, name, type);
+    char *myName = malloc((strlen(name)+1)*sizeof(char));
+    char *myType = malloc((strlen(type)+1)*sizeof(char));
+    strcpy(myName, name);
+    strcpy(myType, type);
+    free(var->name);
+    free(var->type);
+    var->name = myName;
+    var->type = myType;
 }
 
 
@@ -110,7 +139,7 @@ bool isVarExistStack(DataStack variables, char *name){
         return false;
     }
     else{
-        if(strcmp(variables->var->info->name,name)==0){
+        if(strcmp(variables->var->name,name)==0){
             return true;
         }else{
             return isVarExistStack(variables->next,name);
@@ -119,12 +148,12 @@ bool isVarExistStack(DataStack variables, char *name){
 }
 
 bool isVarExistInContextStack(DataStack variables, char *name){
-    if(isEmptyStack(variables) || strcmp(variables->var->info->type, "context")==0){
+    if(isEmptyStack(variables) || strcmp(variables->var->type, "context")==0){
         return false;
     }
     else{
-        if(strcmp(variables->var->info->name,name)==0){
-            printf("Variable match with %s, type %s\n", variables->var->info->name, variables->var->info->type);
+        if(strcmp(variables->var->name,name)==0){
+            printf("Variable match with %s, type %s\n", variables->var->name, variables->var->type);
             return true;
         }else{
             return isVarExistInContextStack(variables->next,name);
@@ -142,7 +171,7 @@ bool isVarExistInContext(Data variables, char *name){
 
 void printAllVariables(DataStack variables){
     if(!isEmptyStack(variables)){
-        printf("Type %s, name %s, value %d\n",variables->var->info->type, variables->var->info->name, variables->var->intValue);
+        printf("Type %s, name %s, value %d\n",variables->var->type, variables->var->name, variables->var->intValue);
         printAllVariables(variables->next);
     }
 }
@@ -155,7 +184,7 @@ Variable getVarStack(DataStack variables, char *name){
         /* change 0 to variable, without creating memory for it */
         return 0;
     }else{
-        if(strcmp(variables->var->info->name,name)==0){
+        if(strcmp(variables->var->name,name)==0){
             return variables->var;
         }else{
             return getVarStack(variables->next,name);
@@ -172,11 +201,11 @@ Variable copyVarStack(DataStack variables, char *name){
         printf("Variable %s doesn't exist\n", name);
         return newVarInt("", "int", 0);
     }else{
-        if(strcmp(variables->var->info->name,name)==0){
-            if(strcmp(variables->var->info->type, "int")==0){
-                return newVarInt(variables->var->info->name, variables->var->info->type, variables->var->intValue);
-            }else if(strcmp(variables->var->info->type, "float")==0){
-                return newVarFloat(variables->var->info->name, variables->var->info->type, variables->var->floatValue);
+        if(strcmp(variables->var->name,name)==0){
+            if(strcmp(variables->var->type, "int")==0){
+                return newVarInt(variables->var->name, variables->var->type, variables->var->intValue);
+            }else if(strcmp(variables->var->type, "float")==0){
+                return newVarFloat(variables->var->name, variables->var->type, variables->var->floatValue);
             }
         }else{
             return copyVarStack(variables->next,name);
@@ -192,7 +221,7 @@ Variable copyVar(Data variables, char *name){
 
 DataStack deleteVarStack(DataStack variables, char *name){
     if(!isEmptyStack(variables)){
-        if(strcmp(variables->var->info->name,name)==0){
+        if(strcmp(variables->var->name,name)==0){
             DataStack next=variables->next;
             freeVar(variables->var);
             free(variables);
@@ -210,7 +239,7 @@ void deleteVar(Data variables, char *name){
 
 DataStack removeVarStack(DataStack variables, char *name){
     if(!isEmptyStack(variables)){
-        if(strcmp(variables->var->info->name,name)==0){
+        if(strcmp(variables->var->name,name)==0){
             DataStack next=variables->next;
             return next;
         }else{
@@ -242,8 +271,7 @@ void storeVar(Data variables, Variable var){
 void freeDataStack(DataStack variables){
     if(!isEmptyStack(variables)){
         freeDataStack(variables->next);
-        freeVarInfo(variables->var->info);
-        free(variables->var);
+        freeVar(variables->var);
         free(variables);
     }
 }
@@ -256,9 +284,9 @@ void freeData(Data variables){
 }
 
 DataStack freeContextStack(DataStack variables){
-    if(!isEmptyStack(variables) && strcmp(variables->var->info->type, "context")!=0){
-        free(variables->var->info->name);
-        free(variables->var->info->type);
+    if(!isEmptyStack(variables) && strcmp(variables->var->type, "context")!=0){
+        free(variables->var->name);
+        free(variables->var->type);
         free(variables->var);
         DataStack next = variables->next;
         free(variables);
@@ -270,8 +298,8 @@ DataStack freeContextStack(DataStack variables){
 
 DataStack freeOneInStack(DataStack variables){
     if(!isEmptyStack(variables)){
-        free(variables->var->info->name);
-        free(variables->var->info->type);
+        free(variables->var->name);
+        free(variables->var->type);
         free(variables->var);
         DataStack next = variables->next;
         free(variables);

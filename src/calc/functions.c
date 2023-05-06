@@ -27,7 +27,7 @@ int runFunction(char *name, Data myStack, Data myData, int currentLine){
 }
 
 int runFunctionEmpty(char *functionName, Data myData, int currentLine){
-    if(isVarExist(myData, functionName) && strcmp(getVar(myData, functionName)->info->type, "function")==0){
+    if(isVarExist(myData, functionName) && strcmp(getVar(myData, functionName)->type, "function")==0){
         storeVar(myData, newVarInt("", "context", currentLine));
         return getVar(myData, functionName)->intValue;
     }else{
