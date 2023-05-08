@@ -11,6 +11,12 @@ gcc -o compiler compiler.tab.c lex.yy.c src/*.c src/*/*.c
 
 Once the *compiler* file is compile, you can only run the last line to execute your program.
 
+It's also possible to run the program line by line (like while executing "python3") with :
+
+```bash
+./compiler
+```
+
 ## Feature
 
 Currently, the program is only supporting types **int**, **boolean** and **float**.

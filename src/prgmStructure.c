@@ -128,8 +128,8 @@ void displayPrgm(Program myPrgm){
     }
 }
 
-void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStack){
-    int i = 0;
+int runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStack, int startPoint){
+    int i = startPoint;
     Action currentAction = getAction(myPrgm, i);
     while(i<myPrgm->lastElement){
         // printf("\x1B[32m");
@@ -306,4 +306,5 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
             currentAction = getAction(myPrgm, i);
         }
     }
+    return i;
 }

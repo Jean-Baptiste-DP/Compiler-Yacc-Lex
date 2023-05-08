@@ -15,6 +15,11 @@ Stack myStack = NULL;
 Data temporaryStorage = NULL;
 Program myPrgm = NULL;
 CalcStorage myCalc = NULL;
+
+int fromFile = 0;
+int nextExecutionLine = 0;
+void runProgramLinebyLine();
+void quit();
 %}
 
 %union {
@@ -43,6 +48,7 @@ CalcStorage myCalc = NULL;
 %nonassoc FUNCT
 %nonassoc RETURN
 %nonassoc ASSIGN
+%nonassoc EXIT
 %token <varName> VARNAME
 %left AND
 %left OR /*The order of the token show the priority of computation NOT in priority in front of AND and OR*/
@@ -61,7 +67,7 @@ CalcStorage myCalc = NULL;
 %%
 
 line :          {;}
-| line action   {;}
+| line action   {runProgramLinebyLine();}
 ;
 
 action : print '('Calcul')' ';'     {storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3), ""));}
@@ -74,6 +80,7 @@ action : print '('Calcul')' ';'     {storeAction(myPrgm,newAction(2,"",0,storeCa
 | VARNAME VARNAME ';'               {storeAction(myPrgm,newAction(1, $2, 0, -1, $1));free($2);free($1);}
 | VARNAME ASSIGN Calcul ';'         {storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3), "")); free($1);}
 | '{' line '}'                      {;}
+| EXIT                              {quit();}
 ;
 
 Calcul : Expression     {$$ = $1;}
@@ -152,6 +159,8 @@ int main(int argc, char** argv){
         if(!yyin){
             fprintf(stderr, "Impossible to open the file : %s\n", argv[1]);
             return 1;
+        }else{
+            fromFile = 1;
         }
     }
 
@@ -160,12 +169,36 @@ int main(int argc, char** argv){
     temporaryStorage = newData();
     myPrgm = newPrgm();
     myCalc = newCalcStorage();
+    if(!fromFile){
+        printf("Welcome to the parser, enter \"exit\" to quit the command prompt\n");
+        printf(">>> ");
+    }
     yyparse();
     /* displayPrgm(myPrgm); */
-    runProgram(myPrgm, myCalc, variables, temporaryStorage);
+    if(fromFile){
+        runProgram(myPrgm, myCalc, variables, temporaryStorage, 0);
+    }
     freeCalcStorage(myCalc);
     freeProgram(myPrgm);
     freeData(variables);
     freeData(temporaryStorage);
     freeStack(myStack);
+}
+
+void runProgramLinebyLine(){
+    if(!fromFile){
+        if(StackisEmpty(myStack)){
+            nextExecutionLine = runProgram(myPrgm, myCalc, variables, temporaryStorage, nextExecutionLine);
+            printf(">>> ");
+        }
+    }
+}
+
+void quit(){
+    freeCalcStorage(myCalc);
+    freeProgram(myPrgm);
+    freeData(variables);
+    freeData(temporaryStorage);
+    freeStack(myStack);
+    exit(0);
 }
