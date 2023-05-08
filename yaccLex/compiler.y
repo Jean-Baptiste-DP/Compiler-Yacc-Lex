@@ -8,7 +8,7 @@
 int flag=0;
 void yyerror();
 int yylex();
-
+extern FILE* yyin;
 
 Data variables = NULL;
 Stack myStack = NULL;
@@ -145,7 +145,16 @@ void yyerror(char *error)
     flag=1;
 }
 
-int main(){
+int main(int argc, char** argv){
+
+    if(argc==2){
+        yyin = fopen(argv[1], "r");
+        if(!yyin){
+            fprintf(stderr, "Impossible to open the file : %s\n", argv[1]);
+            return 1;
+        }
+    }
+
     variables = newData();
     myStack = newStack();
     temporaryStorage = newData();

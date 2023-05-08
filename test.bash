@@ -4,7 +4,7 @@ gcc -o compiler compiler.tab.c lex.yy.c src/*.c src/*/*.c
 
 find test -type f -name "*.test.txt" | while read testFile; do
     outputFile=$(echo "$testFile"|sed 's/test.txt/output.txt/')
-    (./compiler < $testFile) > output.txt
+    (./compiler $testFile) > output.txt
 
     if test -f "$outputFile"; then
         if diff -q output.txt "$outputFile" >/dev/null 2>&1; then
