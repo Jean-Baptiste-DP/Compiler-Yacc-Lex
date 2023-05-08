@@ -4,36 +4,6 @@
 
 #include "variables.h"
 
-/* Type */
-
-VarInfo newVarInfo(char *type, char *name){
-    char *myType = malloc((strlen(type)+1)*sizeof(char));
-    strcpy(myType, type);
-    char *myName = malloc((strlen(name)+1)*sizeof(char));
-    strcpy(myName, name);
-    VarInfo myVar = malloc(sizeof(struct varInfo));
-    myVar->type = myType;
-    myVar->name = myName;
-    return myVar;
-}
-
-void freeVarInfo(VarInfo var){
-    free(var->type);
-    free(var->name);
-    free(var);
-}
-
-void changeVarInfo(VarInfo var, char *name, char *type){
-    char *myName = malloc((strlen(name)+1)*sizeof(char));
-    char *myType = malloc((strlen(type)+1)*sizeof(char));
-    strcpy(myName, name);
-    strcpy(myType, type);
-    free(var->name);
-    free(var->type);
-    var->name = myName;
-    var->type = myType;
-}
-
 /* Initiate a variable */
 
 Variable newVarInt(char *name, char *type, int value){

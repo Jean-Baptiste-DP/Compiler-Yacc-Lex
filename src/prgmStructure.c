@@ -15,17 +15,23 @@
 
 Action newAction(int type,char *varName,int line,int calc, char *varType){
     /* BUG if switch line 18 or 19 -> impossible to free the pointer line 18 */
-    VarInfo myVarInfo = newVarInfo(varType, varName);
     Action act = malloc(sizeof(struct action));
     act->type = type;
     act->line = line;
     act->calc = calc;
-    act->var = myVarInfo;
+    char *myType = malloc((strlen(varType)+1)*sizeof(char));
+    strcpy(myType, varType);
+    char *myName = malloc((strlen(varName)+1)*sizeof(char));
+    strcpy(myName, varName);
+    act->varType = myType;
+    act->varName = myName;
+
     return act;
 }
 
 void freeAction(Action act){
-    freeVarInfo(act->var);
+    free(act->varName);
+    free(act->varType);
     free(act);
 }
 
@@ -111,9 +117,9 @@ void displayPrgm(Program myPrgm){
         }else if(myPrgm->line[i]->type==4){
             printf("Goto line : %d\n", myPrgm->line[i]->line);
         }else if(myPrgm->line[i]->type<2){
-            printf("Assignment var : %s\n", myPrgm->line[i]->var->name);
+            printf("Assignment var : %s\n", myPrgm->line[i]->varName);
         }else if(myPrgm->line[i]->type==6){
-            printf("Kill var : %s\n", myPrgm->line[i]->var->name);
+            printf("Kill var : %s\n", myPrgm->line[i]->varName);
         }else if(myPrgm->line[i]->type==5){
             printf("Return calc : %d\n", myPrgm->line[i]->calc);
         }else{
@@ -138,9 +144,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 if(currentAction->calc>=0){
                     char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack);
                     if(strcmp(response, "")==0){
-                        if(isVarExist(variables, currentAction->var->name)){
+                        if(isVarExist(variables, currentAction->varName)){
                             Variable gettedValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                            Variable previousVar = getVar(variables, currentAction->var->name);
+                            Variable previousVar = getVar(variables, currentAction->varName);
                             if(strcmp(gettedValue->type, previousVar->type)==0){
                                 if(strcmp(previousVar->type, "int")==0){
                                     previousVar->intValue = gettedValue->intValue;
@@ -152,7 +158,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                             }
                             freeVar(gettedValue);
                         }else{
-                            printf("Variable \"%s\" hasn't been declared\nlet %s; to declare it\n", currentAction->var->name, currentAction->var->name);
+                            printf("Variable \"%s\" hasn't been declared\nlet %s; to declare it\n", currentAction->varName, currentAction->varName);
                         }
                         i = i+1;
                     }else{
@@ -165,9 +171,9 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     i = i+1;
                 }
             }else{
-                if(isVarExist(variables, currentAction->var->name)){
+                if(isVarExist(variables, currentAction->varName)){
                     Variable gettedValue = lastValue(myStack);
-                    Variable previousVar = getVar(variables, currentAction->var->name);
+                    Variable previousVar = getVar(variables, currentAction->varName);
                     if(strcmp(gettedValue->type, previousVar->type)==0){
                         if(strcmp(previousVar->type, "int")==0){
                             previousVar->intValue = gettedValue->intValue;
@@ -180,7 +186,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                     freeVar(gettedValue);
                 }else{
                     Variable storedValue = lastValue(myStack);
-                    changeName(storedValue, currentAction->var->name, storedValue->type);
+                    changeName(storedValue, currentAction->varName, storedValue->type);
                     storeVar(variables, storedValue);
                 }
                 i = i+1;
@@ -190,16 +196,16 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 if(currentAction->calc>=0){
                     char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, myStack); 
                     if(strcmp(response, "")==0){
-                        if(isVarExistInContext(variables, currentAction->var->name)){
-                            printf("Variable \"%s\" has already been declared\n", currentAction->var->name);
+                        if(isVarExistInContext(variables, currentAction->varName)){
+                            printf("Variable \"%s\" has already been declared\n", currentAction->varName);
                         }else{
                             if(currentAction->calc>=0){
                                 Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                                if(strcmp(gettedVar->type, currentAction->var->type)==0){
-                                    changeName(gettedVar, currentAction->var->name, gettedVar->type);
+                                if(strcmp(gettedVar->type, currentAction->varType)==0){
+                                    changeName(gettedVar, currentAction->varName, gettedVar->type);
                                     storeVar(variables, gettedVar);
                                 }else{
-                                    printf("Can't assign %s value to %s variable\n", gettedVar->type, currentAction->var->type);
+                                    printf("Can't assign %s value to %s variable\n", gettedVar->type, currentAction->varType);
                                 }
                             }
                         }
@@ -211,21 +217,21 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                         }
                     }
                 }else{
-                    if(!isVarExistInContext(variables, currentAction->var->name)){
-                        storeVar(variables, newVar(currentAction->var->name, currentAction->var->type));
+                    if(!isVarExistInContext(variables, currentAction->varName)){
+                        storeVar(variables, newVar(currentAction->varName, currentAction->varType));
                     }
                     i = i+1;
                 }
             }else{
-                if(isVarExistInContext(variables, currentAction->var->name)){
-                    printf("Variable \"%s\" has already been declared\n", currentAction->var->name);
+                if(isVarExistInContext(variables, currentAction->varName)){
+                    printf("Variable \"%s\" has already been declared\n", currentAction->varName);
                 }else{
                     Variable storedValue = lastValue(myStack);
-                    if(strcmp(storedValue->type, currentAction->var->type)==0){
-                        changeName(storedValue, currentAction->var->name, storedValue->type);
+                    if(strcmp(storedValue->type, currentAction->varType)==0){
+                        changeName(storedValue, currentAction->varName, storedValue->type);
                         storeVar(variables, storedValue);
                     }else{
-                        printf("Can't assign %s value to %s variable\n", storedValue->type, currentAction->var->type);
+                        printf("Can't assign %s value to %s variable\n", storedValue->type, currentAction->varType);
                     }
                 }
                 i = i+1;
@@ -291,7 +297,7 @@ void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStac
                 i = freeContext(variables);
             }
         }else if(currentAction->type==6){ /* delete var */
-            deleteVar(variables, currentAction->var->name);
+            deleteVar(variables, currentAction->varName);
             i = i+1;
         }else{
             i = i+1;

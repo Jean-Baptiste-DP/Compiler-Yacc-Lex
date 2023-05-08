@@ -14,7 +14,8 @@
 
 typedef struct action{
     int type;
-    VarInfo var;
+    char *varType;
+    char *varName;
     int line;
     int calc;
 }*Action;

@@ -6,11 +6,6 @@
 #endif
 #endif
 
-typedef struct varInfo
-{
-    char *type;
-    char *name;
-}*VarInfo;
 
 typedef struct VariableStruct
 {
@@ -38,10 +33,6 @@ typedef struct data{
     DataStack myData;
 }*Data;
 
-/* --- Type --- */
-
-VarInfo newVarInfo(char *type, char *name);
-void freeVarInfo(VarInfo var);
 
 /* --- Variables --- */
 
