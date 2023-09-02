@@ -6,6 +6,9 @@ a.out
 *.tab.*
 lex.yy.c
 
+# precompiled files
+*.o
+
 # other
 notes.md
 .vscode
