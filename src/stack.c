@@ -13,52 +13,45 @@ bool StackisEmpty(Stack stack){
     return stack->stack == NULL;
 }
 
-void freeIntStack(IntStack stack){
+void freeVarStack(VarStack stack){
     if(stack){
-        freeIntStack(stack->next);
+        freeVarStack(stack->next);
         free(stack);
     }
 }
 
 void freeStack(Stack stack){
     if(stack){
-        freeIntStack(stack->stack);
+        freeVarStack(stack->stack);
         free(stack);
     }
 }
 
 void removeStack(Stack stack){
-    freeIntStack(stack->stack);
+    freeVarStack(stack->stack);
     stack->stack=NULL;
 }
 
-void changeStack(Stack stack, IntStack intStack){
+void changeStack(Stack stack, VarStack VarStack){
     removeStack(stack);
-    stack->stack = intStack;
+    stack->stack = VarStack;
 }
 
-void appendInt(Stack stack, int value){
-    IntStack myStack = malloc(sizeof(struct intStack));
+void appendVar(Stack stack, Variable value){
+    VarStack myStack = malloc(sizeof(struct varStack));
     myStack->next = stack->stack;
     myStack->value = value;
     stack->stack = myStack;
 }
 
-int removeLastValue(Stack stack){
-    int value = stack->stack->value;
-    IntStack next  = stack->stack->next;
+Variable removeLastValue(Stack stack){
+    if(StackisEmpty(stack)){
+        printf("Empty stack\n");
+        exit(1);
+    }
+    Variable value = stack->stack->value;
+    VarStack next  = stack->stack->next;
     free(stack->stack);
     stack->stack = next;
     return value;
-}
-
-void displayIntStack(IntStack stack){
-    if(stack){
-        displayIntStack(stack->next);
-        printf("Stack value : %d\n", stack->value);
-    }
-}
-
-void displayStack(Stack stack){
-    displayIntStack(stack->stack);
 }

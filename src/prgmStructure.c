@@ -1,33 +1,9 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
-#ifndef __cplusplus
-#include <stdbool.h>
-#endif
+#include <stdlib.h>
 
 #include "prgmStructure.h"
-
-// for sleep prgm
-#include <unistd.h>
-
-/* --- Actions --- */
-
-Action newAction(int type,char *varName,int line,int calc, char *varType){
-    Action act = malloc(sizeof(struct action));
-    act->type = type;
-    act->line = line;
-    act->calc = calc;
-    act->var = newVarInfo(varType, varName);
-    return act;
-}
-
-void freeAction(Action act){
-    freeVarInfo(act->var);
-    free(act);
-}
-
-/* -- Program Actions --- */
+#include "stack.h"
 
 Program newPrgm(){
     int size = 4;
@@ -42,7 +18,7 @@ Program newPrgm(){
 
 int storeAction(Program myPrgm, Action action){
     if(myPrgm->lastElement == myPrgm->length){
-        int size = 2* myPrgm->length;
+        int size = 2* myPrgm->length; 
         Action *line = myPrgm->line;
         myPrgm->line = malloc(size*sizeof(Action));
         for(int i = 0; i<myPrgm->length; i=i+1){
@@ -71,246 +47,204 @@ Action getAction(Program myPrgm, int index){
 }
 
 void freeProgram(Program myPgrm){
-    for(int i=0; i<myPgrm->lastElement; i=i+1){
-        freeAction(myPgrm->line[i]);
-    }
     free(myPgrm->line);
     free(myPgrm);
 }
 
-int gotoFrom(Stack myStack, Program myPrgm){
-    int pos = storeAction(myPrgm,newAction(4,"",-1,0, ""));
-    appendInt(myStack,pos);
-    return pos;
-}
-void gotoDest(Stack myStack, Program myPrgm, int additionalPos){
-    myPrgm->line[removeLastValue(myStack)]->line = myPrgm->lastElement+additionalPos;
+void displayVariable(Variable myVar){
+    if(myVar.dataType == INTEGER){
+        // printf("int : %d\n", myVar.integer);
+        printf("%d\n", myVar.integer);
+    }else if(myVar.dataType == FLOAT){
+        // printf("float : %f\n", myVar.floattant);
+        printf("%f\n", myVar.floattant);
+    }else if(myVar.dataType == LINE){
+        // printf("line : %d\n", myVar.line);
+        printf("%d\n", myVar.line);
+    }else if(myVar.dataType == POINTER){
+        // printf("pointer : %p\n", myVar.pointer);
+        printf("%p\n", myVar.pointer);
+    }else if(myVar.dataType == OPERATOR){
+        // printf("operator : %d\n", myVar.operator);
+        printf("%d\n", myVar.operator);
+    }else if(myVar.dataType == BOOLEAN){
+        // printf("boolean : %d\n", myVar.boolean);
+        printf("%d\n", myVar.boolean);
+    }
 }
 
-void forEndGoto(Stack myStack, Program myPrgm, char *loopVar){
-    int firstPos = removeLastValue(myStack);
-    myPrgm->line[firstPos]->line = storeAction(myPrgm,newAction(4,"",firstPos-1,0, ""))+1;
-    storeAction(myPrgm, newAction(6,loopVar,0,0, ""));
-}
-
-void whileEndGoto(Stack myStack, Program myPrgm){
-    int firstPos = removeLastValue(myStack);
-    myPrgm->line[firstPos]->line = storeAction(myPrgm,newAction(4,"",firstPos-1,0, ""))+1;
+void displayAction(Action myAct){
+    if(myAct.actionType == STACK_VALUE){
+        printf("[Stack the value] ");
+        displayVariable(myAct.var);
+    }else if(myAct.actionType == CALCUL){
+        printf("[Calcul] ");
+        displayVariable(myAct.var);
+    }else if(myAct.actionType == PRINT){
+        printf("[Print] \n");
+    }else{
+        printf("[ ~ ] ");
+        displayVariable(myAct.var);
+    }
 }
 
 void displayPrgm(Program myPrgm){
+    int maxNumberLength = snprintf(NULL, 0,"%d",myPrgm->lastElement-1);
     for(int i=0; i<myPrgm->lastElement;i = i+1){
-        printf("Line %d - ", i);
-        if(myPrgm->line[i]->type==2){
-            printf("Print calcul : %d\n", myPrgm->line[i]->calc);
-        }else if(myPrgm->line[i]->type==3){
-            printf("If calcul : %d\n", myPrgm->line[i]->calc);
-        }else if(myPrgm->line[i]->type==4){
-            printf("Goto line : %d\n", myPrgm->line[i]->line);
-        }else if(myPrgm->line[i]->type<2){
-            printf("Assignment var : %s\n", myPrgm->line[i]->var->name);
-        }else if(myPrgm->line[i]->type==6){
-            printf("Kill var : %s\n", myPrgm->line[i]->var->name);
-        }else if(myPrgm->line[i]->type==5){
-            printf("Return calc : %d\n", myPrgm->line[i]->calc);
-        }else{
-            printf("Action %d\n", myPrgm->line[i]->type);
-        }
+        printf("(%*d) ", maxNumberLength, i);
+        displayAction(myPrgm->line[i]);
     }
 }
 
-void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStack){
-    int i = 0;
-    Action currentAction = getAction(myPrgm, i);
-    while(i<myPrgm->lastElement){
-        // printf("\x1B[32m");
-        // printf("Running line %d - Action %d\n", i, currentAction->type);
-        // printf("\x1B[0m");
-        // sleep(1);
-        // printf("\x1B[31m");
-        // printAllVariables(myStack->myData);
-        // printf("\x1B[0m");
-        if(currentAction->type==0){ /* assigment */
-            if(isEmpty(myStack)){
-                if(currentAction->calc>=0){
-                    char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
-                    if(strcmp(response, "")==0){
-                        if(isVarExist(variables, currentAction->var->name)){
-                            Variable gettedValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                            Variable previousVar = getVar(variables, currentAction->var->name);
-                            if(strcmp(gettedValue->type, previousVar->type)==0){
-                                if(strcmp(previousVar->type, "int")==0){
-                                    previousVar->intValue = gettedValue->intValue;
-                                }else if(strcmp(previousVar->type, "float")==0){
-                                    previousVar->floatValue = gettedValue->floatValue;
-                                }
-                            }else{
-                                printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
-                            }
-                            freeVar(gettedValue);
-                        }else{
-                            printf("Variable \"%s\" hasn't been declared\nlet %s; to declare it\n", currentAction->var->name, currentAction->var->name);
-                        }
-                        i = i+1;
-                    }else{
-                        if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                            storeVar(variables, newVarInt("", "context", i));
-                            i = getVar(variables, response)->intValue;
-                        }else{
-                            printf("The function %s doesn't exist\n", response);
-                            i = i+1;
-                        }
-                    }
-                }else{
-                    i = i+1;
-                }
-            }else{
-                if(isVarExist(variables, currentAction->var->name)){
-                    Variable gettedValue = lastValue(myStack);
-                    Variable previousVar = getVar(variables, currentAction->var->name);
-                    if(strcmp(gettedValue->type, previousVar->type)==0){
-                        if(strcmp(previousVar->type, "int")==0){
-                            previousVar->intValue = gettedValue->intValue;
-                        }else if(strcmp(previousVar->type, "float")==0){
-                            previousVar->floatValue = gettedValue->floatValue;
-                        }
-                    }else{
-                        printf("Cannot match types %s with %s\n", previousVar->type, gettedValue->type);
-                    }
-                    freeVar(gettedValue);
-                }else{
-                    Variable storedValue = lastValue(myStack);
-                    changeName(storedValue, currentAction->var->name, storedValue->type);
-                    storeVar(variables, storedValue);
-                }
-                i = i+1;
-            }
-        }else if(currentAction->type==1){/* new Variable */
-            if(isEmpty(myStack)){
-                if(currentAction->calc>=0){
-                    char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack); 
-                    if(strcmp(response, "")==0){
-                        if(isVarExistInContext(variables, currentAction->var->name)){
-                            printf("Variable \"%s\" has already been declared\n", currentAction->var->name);
-                        }else{
-                            if(currentAction->calc>=0){
-                                Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                                if(strcmp(gettedVar->type, currentAction->var->type)==0){
-                                    changeName(gettedVar, currentAction->var->name, gettedVar->type);
-                                    storeVar(variables, gettedVar);
-                                }else{
-                                    printf("Can't assign %s value to %s variable\n", gettedVar->type, currentAction->var->type);
-                                }
-                            }
-                        }
-                        i = i+1;
-                    }else{
-                        if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                            /* TODO check type */
-                            storeVar(variables, newVarInt("", "context", i));
-                            i = getVar(variables, response)->intValue;
-                        }else{
-                            printf("The function %s doesn't exist\n", response);
-                            i = i+1;
-                        }
-                    }
-                }else{
-                    if(!isVarExistInContext(variables, currentAction->var->name)){
-                        storeVar(variables, newVar(currentAction->var->name, currentAction->var->type));
-                    }
-                    i = i+1;
-                }
-            }else{
-                if(isVarExistInContext(variables, currentAction->var->name)){
-                    printf("Variable \"%s\" has already been declared\n", currentAction->var->name);
-                }else{
-                    Variable storedValue = lastValue(myStack);
-                    if(strcmp(storedValue->type, currentAction->var->type)==0){
-                        changeName(storedValue, currentAction->var->name, storedValue->type);
-                        storeVar(variables, storedValue);
-                    }else{
-                        printf("Can't assign %s value to %s variable\n", storedValue->type, currentAction->var->type);
-                    }
-                }
-                i = i+1;
-            }
+Variable runCalcul(Variable operator, Stack stack){
+    if(operator.dataType != OPERATOR){
+        printf("Type error, expected OPERATOR\n");
+        exit(1);
+    }
+
+    if(operator.operator == UMOINS){ // UMOINS -> -6 
+        Variable var = removeLastValue(stack);
+        if(var.dataType == INTEGER){
+            var.integer = - var.integer;
+        }else if(var.dataType == FLOAT){
+            var.floattant = - var.floattant;
         }
-        else if(currentAction->type==2){/* print calcul */
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
-            if(strcmp(response, "")==0){
-                Variable gettedVar = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                if(strcmp(gettedVar->type, "int")==0){
-                    printf("%d\n", gettedVar->intValue);
-                }else if(strcmp(gettedVar->type, "float")==0){
-                    printf("%f\n", gettedVar->floatValue);
-                }
-                freeVar(gettedVar);
-                i = i+1;
-            }else{
-                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                    storeVar(variables, newVarInt("", "context", i));
-                    i = getVar(variables, response)->intValue;
-                }else{
-                    printf("The function %s doesn't exist\n", response);
-                    i = i+1;
-                }
-            }
-        }else if(currentAction->type==3){/* if function */
-            char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
-            if(strcmp(response, "")==0){
-                Variable gettedValue= runCalcul(getCalc(calculs, currentAction->calc), variables);
-                if(strcmp(gettedValue->type, "int")==0 && gettedValue->intValue){
-                    i = i+2;
-                }else{
-                    i = i+1;
-                }
-                freeVar(gettedValue);
-            }else{
-                if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                    storeVar(variables, newVarInt("", "context", i));
-                    i = getVar(variables, response)->intValue;
-                }else{
-                    printf("The function %s doesn't exist\n", response);
-                    i = i+1;
-                }
-            }
-        }else if(currentAction->type==4){/* goto line */
-            if(currentAction->line>=0){
-                i = currentAction->line;
-            }else{
-                printf("Wrong position in Goto\n");
-                exit(1);
-            }
-        }else if(currentAction->type==5){ /* exit fct */
-            if(currentAction->calc>=0){
-                char *response = getCalcCallBack(getCalc(calculs, currentAction->calc), variables, calculs, myStack);
-                if(strcmp(response, "")==0){
-                    
-                    Variable returnValue = runCalcul(getCalc(calculs, currentAction->calc), variables);
-                    i = freeContext(variables);
-                    changeName(returnValue, "return", returnValue->type);
-                    storeVar(variables, returnValue);
-                    
-                }else{
-                    if(isVarExist(variables, response) && strcmp(getVar(variables, response)->type, "function")==0){
-                        storeVar(variables, newVarInt("", "context", i));
-                        i = getVar(variables, response)->intValue;
-                    }else{
-                        printf("The function %s doesn't exist\n", response);
-                        i = i+1;
-                    }
-                }
-            }else{
-                i = freeContext(variables);
-            }
-        }else if(currentAction->type==6){ /* delete var */
-            deleteVar(variables, currentAction->var->name);
-            i = i+1;
-        }else{
-            i = i+1;
+        return var;
+    }else if(operator.operator == NOT){ // NOT -> !False
+        Variable var = removeLastValue(stack);
+        if(var.dataType == BOOLEAN){
+            var.boolean = !var.boolean;
         }
-        if(i<myPrgm->lastElement){
-            currentAction = getAction(myPrgm, i);
+        return var;
+    }
+
+    Variable var2 = removeLastValue(stack);
+    Variable var1 = removeLastValue(stack);
+
+    if(var1.dataType != var2.dataType){
+        printf("Trying to make operation between %d and %d without a cast\n", (int)var1.dataType, (int)var2.dataType);
+    }
+    if(operator.operator == MOINS){ // MOINS 4-5
+        if(var1.dataType == INTEGER){
+            var1.integer -= var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.floattant -= var2.floattant;
+        }
+    }else if(operator.operator == FOIS){ // FOIS 4*5
+        if(var1.dataType == INTEGER){
+            var1.integer *= var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.floattant *= var2.floattant;
+        }
+    }else if(operator.operator == PLUS){ // PLUS 4+5
+        if(var1.dataType == INTEGER){
+            var1.integer += var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.floattant += var2.floattant;
+        }
+    }else if(operator.operator == DIVISE){ // DIVISE 4/5
+        if(var1.dataType == INTEGER){
+            var1.integer /= var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.floattant /= var2.floattant;
+        }
+    }else if(operator.operator == MODULO){ // MODULO 4%5
+        if(var1.dataType == INTEGER){
+            var1.integer %= var2.integer;
+        }
+    }else if(operator.operator == EQ){ // EQ 4==5
+        if(var1.dataType == INTEGER){
+            var1.boolean = var1.integer == var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.boolean = var1.floattant == var2.floattant;
+        }
+        var1.dataType = BOOLEAN;
+    }else if(operator.operator == NEQ){ // NEQ 4!=5
+        if(var1.dataType == INTEGER){
+            var1.boolean = var1.integer != var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.boolean = var1.floattant != var2.floattant;
+        }
+        var1.dataType = BOOLEAN;
+    }else if(operator.operator == LT){ // LT 4<5
+        if(var1.dataType == INTEGER){
+            var1.boolean = var1.integer < var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.boolean = var1.floattant < var2.floattant;
+        }
+        var1.dataType = BOOLEAN;
+    }else if(operator.operator == GT){ // GT 4>5
+        if(var1.dataType == INTEGER){
+            var1.boolean = var1.integer > var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.boolean = var1.floattant > var2.floattant;
+        }
+        var1.dataType = BOOLEAN;
+    }else if(operator.operator == LE){ // LE 4<=5
+        if(var1.dataType == INTEGER){
+            var1.boolean = var1.integer <= var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.boolean = var1.floattant <= var2.floattant;
+        }
+        var1.dataType = BOOLEAN;
+    }else if(operator.operator == GE){ // GE 4>=5
+        if(var1.dataType == INTEGER){
+            var1.boolean = var1.integer >= var2.integer;
+        }else if(var1.dataType == FLOAT){
+            var1.boolean = var1.floattant >= var2.floattant;
+        }
+        var1.dataType = BOOLEAN;
+    }else if(operator.operator == GE){ // AND True && False
+        if(var1.dataType == BOOLEAN){
+            var1.boolean = var1.boolean && var2.boolean;
+        }
+    }else if(operator.operator == GE){ // OR True || False
+        if(var1.dataType == BOOLEAN){
+            var1.boolean = var1.integer || var2.integer;
         }
     }
+    return var1;
 }
+
+void runProgram(Program myPrgm){
+    Stack calculStore = newStack();
+    int exectutedLine = 0;
+    while (exectutedLine<myPrgm->lastElement){
+        // Loop throw program actions
+        Action currentAction = getAction(myPrgm, exectutedLine);
+
+        if(currentAction.actionType == STACK_VALUE){ // Add value to stack
+            appendVar(calculStore, currentAction.var);
+            exectutedLine+=1;
+        }else if(currentAction.actionType == CALCUL){ // execut operation
+            Variable response = runCalcul(currentAction.var, calculStore);
+            appendVar(calculStore, response);
+            exectutedLine+=1;
+        }else if(currentAction.actionType == PRINT){ // execut operation
+            Variable printedValue = removeLastValue(calculStore);
+            displayVariable(printedValue);
+            exectutedLine+=1;
+        }else{
+            printf("Other Actions\n");
+        }
+    }
+    freeStack(calculStore);
+}
+
+// int main(){
+//     Program myProgm = newPrgm();
+//     storeAction(myProgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = INTEGER, .integer = 2 } });
+//     storeAction(myProgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = INTEGER, .integer = 6 } });
+//     storeAction(myProgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = INTEGER, .integer = 5 } });
+//     storeAction(myProgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = PLUS } });
+//     storeAction(myProgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = INTEGER, .integer = 4 } });
+//     storeAction(myProgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = INTEGER, .integer = 3 } });
+//     storeAction(myProgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = PLUS } });
+//     storeAction(myProgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = FOIS } });
+//     storeAction(myProgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = MOINS } });
+//     storeAction(myProgm, (Action){ .actionType = PRINT});
+//     storeAction(myProgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = INTEGER, .integer = 3 } });
+//     storeAction(myProgm, (Action){ .actionType = PRINT});
+//     runProgram(myProgm);
+//     freeProgram(myProgm);
+// }

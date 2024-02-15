@@ -1,20 +1,16 @@
 %{
 /* Definition section */
 #include <stdbool.h>
-#include "./src/prgmStructure2.h"
+#include "./src/prgmStructure.h"
 #include <stdio.h>     /* C declarations used in actions */
 #include <stdlib.h>
 #include <ctype.h>
 int flag=0;
 void yyerror();
 int yylex();
+int yylex_destroy();
 
-
-Data variables = NULL;
-Stack myStack = NULL;
-Data temporaryStorage = NULL;
 Program myPrgm = NULL;
-CalcStorage myCalc = NULL;
 %}
 
 %union {
@@ -26,31 +22,27 @@ CalcStorage myCalc = NULL;
     float floatVal;
 }
 
-%start line
-%token <num> NUMBER
-%token <floatVal> FLOAT
-%token <boolean> TRUE FALSE
+%start YACCline
+%token <num> YACCNUMBER
+%token <floatVal> YACCFLOAT
+%token <boolean> YACCTRUE YACCFALSE
 
-%type <calc> Condition
-%type <calc> Expression
-%type <calc> Calcul
-%type <param> callParameter
-%token print
-%nonassoc IF
-%nonassoc ELSE
-%nonassoc FOR
-%nonassoc WHILE
-%nonassoc FUNCT
-%nonassoc RETURN
-%nonassoc ASSIGN
-%token <varName> VARNAME
-%left AND
-%left OR /*The order of the token show the priority of computation NOT in priority in front of AND and OR*/
-%left NOT
-%token EQ NEQ GE LE GT LT
+%token YACCprint
+%nonassoc YACCIF
+%nonassoc YACCELSE
+%nonassoc YACCFOR
+%nonassoc YACCWHILE
+%nonassoc YACCFUNCT
+%nonassoc YACCRETURN
+%nonassoc YACCASSIGN
+%token <varName> YACCVARNAME
+%left YACCAND
+%left YACCOR /*The order of the token show the priority of computation NOT in priority in front of AND and OR*/
+%left YACCNOT
+%token YACCEQ YACCNEQ YACCGE YACCLE YACCGT YACCLT
 %left '+' '-'
 %left '*' '/' '%'
-%nonassoc UMINUS
+%nonassoc YACCUMINUS
 %left '(' ')' '{' '}'
 %left '&' '|'
 %left '!'
@@ -60,80 +52,80 @@ CalcStorage myCalc = NULL;
 
 %%
 
-line :          {;}
-| line action   {;}
+YACCline :              {;}
+| YACCline YACCaction   {;}
 ;
 
-action : print '('Calcul')' ';'     {storeAction(myPrgm,newAction(2,"",0,storeCalcul(myCalc, $3), ""));}
-| IF Condition                      {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2), "")); gotoFrom(myStack, myPrgm);} endif
-| forLoop                           {;}
-| whileLoop                         {;}
-| function                          {;}
-| RETURN Calcul ';'                 {storeAction(myPrgm,newAction(5, "", 0, storeCalcul(myCalc, $2), ""));}
-| VARNAME VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4), $1)); free($2);free($1);}
-| VARNAME VARNAME ';'               {storeAction(myPrgm,newAction(1, $2, 0, -1, $1));free($2);free($1);}
-| VARNAME ASSIGN Calcul ';'         {storeAction(myPrgm,newAction(0, $1, 0, storeCalcul(myCalc, $3), "")); free($1);}
-| '{' line '}'                      {;}
+YACCaction : YACCprint '('YACCCalcul')' ';'         {storeAction(myPrgm, (Action){ .actionType = PRINT});}
+| YACCIF YACCCondition                              {storeAction(myPrgm, (Action){ .actionType = IF});} YACCendif
+| YACCforLoop                                       {;}
+| YACCwhileLoop                                     {;}
+| YACCfunction                                      {;}
+| YACCRETURN YACCCalcul ';'                         {storeAction(myPrgm, (Action){ .actionType = ASSIGNMENT});}
+| YACCVARNAME YACCVARNAME YACCASSIGN YACCCalcul ';' {storeAction(myPrgm, (Action){ .actionType = ASSIGNMENT}); free($2);free($1);}
+| YACCVARNAME YACCVARNAME ';'                       {storeAction(myPrgm, (Action){ .actionType = ASSIGNMENT});free($2);free($1);}
+| YACCVARNAME YACCASSIGN YACCCalcul ';'             {storeAction(myPrgm, (Action){ .actionType = ASSIGNMENT}); free($1);}
+| '{' YACCline '}'                                  {;}
 ;
 
-Calcul : Expression     {$$ = $1;}
-| Condition             {$$ = $1;}
+YACCCalcul : YACCExpression     {;}
+| YACCCondition                 {;}
 
-Expression:Expression'*'Expression  {$$ = FctCalc("__mul__",newParameter($1, newParameter($3, NULL)), 1);}
-|Expression'/'Expression            {$$ = FctCalc("__div__",newParameter($1, newParameter($3, NULL)), 1);}
-|Expression'+'Expression            {$$ = FctCalc("__add__",newParameter($1, newParameter($3, NULL)), 1);}
-|Expression'-'Expression            {$$ = FctCalc("__sub__",newParameter($1, newParameter($3, NULL)), 1);}
-|Expression'%'Expression            {$$ = FctCalc("__mod__",newParameter($1, newParameter($3, NULL)), 1);}
-|'('Expression')'                   {$$ = $2;}
-|'-' Expression %prec UMINUS        {$$ = FctCalc("__sub__",newParameter($2, NULL), 1);}
-| NUMBER                            {$$ = ConstCalcInt($1);}
-| FLOAT                             {$$ = ConstCalcFloat($1);}
-| VARNAME '(' callParameter ')'     {$$ = FctCalc($1, $3, 0); free($1);}
-| VARNAME                           {$$ = VarCalc($1);free($1);}
+YACCExpression: YACCExpression'*'YACCExpression     {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = FOIS } });}
+|YACCExpression'/'YACCExpression                    {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = DIVISE } });}
+|YACCExpression'+'YACCExpression                    {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = PLUS } });}
+|YACCExpression'-'YACCExpression                    {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = MOINS } });}
+|YACCExpression'%'YACCExpression                    {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = MODULO } });}
+|'('YACCExpression')'                               {;}
+|'-' YACCExpression %prec YACCUMINUS                {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = UMOINS } });}
+| YACCNUMBER                                        {storeAction(myPrgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = INTEGER, .integer = $1 } });}
+| YACCFLOAT                                         {storeAction(myPrgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = FLOAT, .floattant = $1 } });}
+| YACCVARNAME '(' YACCcallParameter ')'             {free($1);}
+| YACCVARNAME                                       {free($1);}
 ;
 
-Condition : NOT Condition               {$$ = FctCalc("__not__",newParameter($2, NULL), 1);}
-| Condition AND Condition               {$$ = FctCalc("__and__",newParameter($1, newParameter($3, NULL)), 1);}
-| Condition OR Condition                {$$ = FctCalc("__or__",newParameter($1, newParameter($3, NULL)), 1);}
-| '('Condition')'                       {$$ = $2;}
-| TRUE                                  {$$ = ConstCalcInt(true);}
-| FALSE                                 {$$ = ConstCalcInt(false);}
-| Expression EQ Expression              {$$ = FctCalc("__eq__",newParameter($1, newParameter($3, NULL)), 1);}
-| Expression NEQ Expression             {$$ = FctCalc("__neq__",newParameter($1, newParameter($3, NULL)), 1);}
-| Expression GE Expression              {$$ = FctCalc("__ge__",newParameter($1, newParameter($3, NULL)), 1);}
-| Expression LE Expression              {$$ = FctCalc("__le__",newParameter($1, newParameter($3, NULL)), 1);}
-| Expression GT Expression              {$$ = FctCalc("__gt__",newParameter($1, newParameter($3, NULL)), 1);}
-| Expression LT Expression              {$$ = FctCalc("__lt__",newParameter($1, newParameter($3, NULL)), 1);}
+YACCCondition : YACCNOT YACCCondition       {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = NOT } });}
+|YACCCondition YACCAND YACCCondition        {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = AND } });}
+|YACCCondition YACCOR YACCCondition         {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = OR } });}
+| '('YACCCondition')'                       {;}
+| YACCTRUE                                  {storeAction(myPrgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = BOOLEAN, .boolean = 1 } });}
+| YACCFALSE                                 {storeAction(myPrgm, (Action){ .actionType = STACK_VALUE, .var = { .dataType = BOOLEAN, .boolean = 0 } });}
+|YACCExpression YACCEQ YACCExpression       {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = EQ } });}
+|YACCExpression YACCNEQ YACCExpression      {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = NEQ } });}
+|YACCExpression YACCGE YACCExpression       {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = GE } });}
+|YACCExpression YACCLE YACCExpression       {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = LE } });}
+|YACCExpression YACCGT YACCExpression       {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = GT } });}
+|YACCExpression YACCLT YACCExpression       {storeAction(myPrgm, (Action){ .actionType = CALCUL, .var = { .dataType = OPERATOR, .operator = LT } });}
 ;
 
-endif : '{' line '}' ELSE           {gotoDest(myStack, myPrgm, 1);gotoFrom(myStack, myPrgm);} 
-action                              {gotoDest(myStack, myPrgm, 0);}
-| action                            {gotoDest(myStack, myPrgm, 0);}
+YACCendif : '{' YACCline '}' YACCELSE           {;} 
+YACCaction                                      {;}
+| YACCaction                                    {;}
 ;
 
-forLoop : FOR '(' VARNAME VARNAME ASSIGN Calcul ';' {storeAction(myPrgm,newAction(1, $4, 0, storeCalcul(myCalc, $6), $3));}
-Condition ';'                                       {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $9), ""));gotoFrom(myStack, myPrgm);}
-VARNAME ASSIGN Calcul ')' '{' line '}'              {storeAction(myPrgm,newAction(0, $12, 0, storeCalcul(myCalc, $14), ""));forEndGoto(myStack, myPrgm, $4);free($3);free($4);free($12);}
+YACCforLoop : YACCFOR '(' YACCVARNAME YACCVARNAME YACCASSIGN YACCCalcul ';' {;}
+YACCCondition ';'                                                           {;}
+YACCVARNAME YACCASSIGN YACCCalcul ')' '{' YACCline '}'                      {free($3);free($4);free($12);}
 ;
 
-whileLoop : WHILE Condition     {storeAction(myPrgm,newAction(3,"",0,storeCalcul(myCalc, $2), ""));gotoFrom(myStack, myPrgm);}
-'{' line '}'                    {whileEndGoto(myStack, myPrgm);}
+YACCwhileLoop : YACCWHILE YACCCondition     {;}
+'{' YACCline '}'                            {;}
 ;
 
-callParameter :                 {$$ = NULL;}
-| Calcul ',' callParameter      {$$ = newParameter($1, $3);}
-| Calcul                        {$$ = newParameter($1, NULL);}
+YACCcallParameter :                     {;}
+| YACCCalcul ',' YACCcallParameter      {;}
+| YACCCalcul                            {;}
 ;
 
-defparameters :                                 {;}
-| defparameters ',' VARNAME VARNAME ASSIGN Calcul   {storeAction(myPrgm,newAction(1, $4, 0, storeCalcul(myCalc, $6), $3));free($3);free($4);}
-| defparameters ',' VARNAME VARNAME                 {storeAction(myPrgm,newAction(1, $4, 0, -1, $3));free($4);free($3);}
-| VARNAME VARNAME ASSIGN Calcul                     {storeAction(myPrgm,newAction(1, $2, 0, storeCalcul(myCalc, $4), $1)); free($2);free($1);}
-| VARNAME VARNAME                                   {storeAction(myPrgm,newAction(1, $2, 0, -1, $1));free($2);free($1);}
+YACCdefparameters :                                                     {;}
+| YACCdefparameters ',' YACCVARNAME YACCVARNAME YACCASSIGN YACCCalcul   {free($3);free($4);}
+| YACCdefparameters ',' YACCVARNAME YACCVARNAME                         {free($4);free($3);}
+| YACCVARNAME YACCVARNAME YACCASSIGN YACCCalcul                         {free($2);free($1);}
+| YACCVARNAME YACCVARNAME                                               {free($2);free($1);}
 ;
 
-function : FUNCT VARNAME                   {storeVar(variables, newVarInt($2, "function", gotoFrom(myStack, myPrgm)+1)); free($2);}
-'(' defparameters ')' '{' line '}'         {storeAction(myPrgm,newAction(5, "", 0, -1, ""));gotoDest(myStack, myPrgm, 0);}
+YACCfunction : YACCFUNCT YACCVARNAME                    {free($2);}
+'(' YACCdefparameters ')' '{' YACCline '}'              {;}
 ;
 
 %%
@@ -146,17 +138,10 @@ void yyerror(char *error)
 }
 
 int main(){
-    variables = newData();
-    myStack = newStack();
-    temporaryStorage = newData();
     myPrgm = newPrgm();
-    myCalc = newCalcStorage();
     yyparse();
     /* displayPrgm(myPrgm); */
-    runProgram(myPrgm, myCalc, variables, temporaryStorage);
-    freeCalcStorage(myCalc);
+    runProgram(myPrgm);
     freeProgram(myPrgm);
-    freeData(variables);
-    freeData(temporaryStorage);
-    freeStack(myStack);
+    yylex_destroy(); // to avoid memory leaks https://stackoverflow.com/questions/40227135/why-yacc-have-memory-leak-at-exit
 }

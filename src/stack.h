@@ -1,29 +1,30 @@
 #define STACK
 
+#ifndef VARIABLE
+#include "variable.h"
+#endif
+
 #ifndef __cplusplus
 #ifndef bool
 #include <stdbool.h>
 #endif
 #endif
 
-typedef struct intStack{
-    int value;
-    struct intStack *next;
-}*IntStack;
+typedef struct varStack{
+    Variable value;
+    struct varStack *next;
+}* VarStack;
 
 typedef struct stack{
-    IntStack stack;
+    VarStack stack;
 }*Stack;
 
 /* --- Stack --- */
 
 Stack newStack();
 bool StackisEmpty(Stack stack);
-void freeIntStack(IntStack stack);
 void freeStack(Stack stack);
-void changeStack(Stack stack, IntStack intStack);
+void changeStack(Stack stack, VarStack VarStack);
 void removeStack(Stack stack);
-void appendInt(Stack stack, int value);
-int removeLastValue(Stack stack);
-void displayIntStack(IntStack stack);
-void displayStack(Stack stack);
+void appendVar(Stack stack, Variable value);
+Variable removeLastValue(Stack stack);

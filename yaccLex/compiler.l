@@ -5,32 +5,32 @@
 
 %%
 
-"True"          {return TRUE;}
-"False"         {return FALSE;}
-"&&"            {return AND;}
-"||"            {return OR;}
-"!"             {return NOT;}
-"=="            {return EQ;}
-"!="            {return NEQ;}
-">="            {return GE;}
-"<="            {return LE;}
-">"             {return GT;}
-"<"             {return LT;}
-"if"            {return IF;}
-"else"          {return ELSE;}
-"for"           {return FOR;}
-"while"         {return WHILE;}
-"function"      {return FUNCT;}
-"return"        {return RETURN;}
-"print"		    {return print;}
-"="             {return ASSIGN;}
-[0-9]+\.[0-9]*  {yylval.floatVal = atof(yytext); return FLOAT;}
-[0-9]+          {yylval.num = atoi(yytext); return NUMBER;}
+"True"          {return YACCTRUE;}
+"False"         {return YACCFALSE;}
+"&&"            {return YACCAND;}
+"||"            {return YACCOR;}
+"!"             {return YACCNOT;}
+"=="            {return YACCEQ;}
+"!="            {return YACCNEQ;}
+">="            {return YACCGE;}
+"<="            {return YACCLE;}
+">"             {return YACCGT;}
+"<"             {return YACCLT;}
+"if"            {return YACCIF;}
+"else"          {return YACCELSE;}
+"for"           {return YACCFOR;}
+"while"         {return YACCWHILE;}
+"function"      {return YACCFUNCT;}
+"return"        {return YACCRETURN;}
+"print"		    {return YACCprint;}
+"="             {return YACCASSIGN;}
+[0-9]+\.[0-9]*  {yylval.floatVal = atof(yytext); return YACCFLOAT;}
+[0-9]+          {yylval.num = atoi(yytext); return YACCNUMBER;}
 [a-zA-Z][a-zA-Z0-9_]*   {
                             char *myvar = malloc((strlen(yytext)+1)*sizeof(char));
                             strcpy(myvar, yytext);
                             yylval.varName = myvar;
-                            return VARNAME;
+                            return YACCVARNAME;
                         }
 [ \t]           ; /* ignore les blancs et tabulations */
 \n              ;

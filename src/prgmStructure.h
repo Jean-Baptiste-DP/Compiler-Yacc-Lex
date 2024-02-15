@@ -1,22 +1,26 @@
-#ifndef __cplusplus
-#ifndef bool
-#include <stdbool.h>
+#ifndef VARIABLE
+#include "variable.h"
 #endif
-#endif
-
-#include "stack.h"
-#include "variables.h"
-#include "calc/calculs.h"
 
 /* --- Type definition --- */
 
+enum ActionType{
+    STACK_VALUE,
+    CALCUL,
+    ASSIGNMENT,
+    NEW_VAR,
+    PRINT,
+    IF,
+    GOTO,
+    EXIT,
+    DELETE_VAR
+};
 
-typedef struct action{
-    int type;
-    VarInfo var;
-    int line;
-    int calc;
-}*Action;
+
+typedef struct{
+    enum ActionType actionType;
+    Variable var;
+} Action;
 
 typedef struct prgmLine{
     int length;
@@ -25,26 +29,26 @@ typedef struct prgmLine{
 }*Program;
 
 
-/* --- Action of program --- */
+// /* --- Action of program --- */
 
-Action newAction(int type,char *var,int line,int calc, char *varType);
-void freeAction(Action act);
+// Action newAction(int type,char *var,int line,int calc, char *varType);
+// void freeAction(Action act);
 
-/* --- Program Line --- */
+// /* --- Program Line --- */
 
 Program newPrgm();
 int storeAction(Program myPrgm, Action act);
 Action getAction(Program myPrgm, int index);
 void freeProgram(Program myPgrm);
 
-/* --- Build Prgm --- */
+// /* --- Build Prgm --- */
 
-int gotoFrom(Stack myStack, Program myPrgm);
-void gotoDest(Stack myStack, Program myPrgm, int additionalPos);
-void forEndGoto(Stack myStack, Program myPrgm, char *loopVar);
-void whileEndGoto(Stack myStack, Program myPrgm);
+// int gotoFrom(Stack myStack, Program myPrgm);
+// void gotoDest(Stack myStack, Program myPrgm, int additionalPos);
+// void forEndGoto(Stack myStack, Program myPrgm, char *loopVar);
+// void whileEndGoto(Stack myStack, Program myPrgm);
 void displayPrgm(Program myPrgm);
 
-/* --- Run Prgm --- */
+// /* --- Run Prgm --- */
 
-void runProgram(Program myPrgm, CalcStorage calculs, Data variables, Data myStack);
+void runProgram(Program myPrgm);
